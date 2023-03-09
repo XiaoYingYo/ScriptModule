@@ -189,7 +189,7 @@ class global_module {
         return href;
     };
 
-    //根据扩展名引入js或css
+    // 根据扩展名引入js或css
     static async LoadJsOrCss(url, scriptStr = "") {
         return new Promise(function (resolve) {
             if (Array.isArray(url)) {
@@ -253,6 +253,10 @@ class global_module {
         }).catch(function (e) {
             console.log(e);
         });
+    }
+
+    static RemoveJsOrCss(url) { 
+        $("[id='" + url + "']").remove();
     }
 
     static IframeInjectScript(element, type = "js", Str) {
