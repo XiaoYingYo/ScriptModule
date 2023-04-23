@@ -566,6 +566,10 @@ class global_module {
             }, Delay);
         });
     }
+
+    static getMiddleString(str, start, end) {
+        return str.substring(str.indexOf(start) + 1, str.indexOf(end));
+    }
 }
 
 try {
