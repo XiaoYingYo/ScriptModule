@@ -571,6 +571,29 @@ class global_module {
         return str.substring(str.indexOf(start) + 1, str.indexOf(end));
     }
 
+    static Cookie = {
+        get: function (name) {
+            let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+            return match && decodeURIComponent(match[2]);
+        },
+        set: function (name, value, days) {
+            if (days == null) {
+                days = 1;
+            }
+            let d = new Date;
+            d.setTime(d.getTime() + 24 * 60 * 60 * 1000 * days);
+            document.cookie = name + "=" + value + ";path=/;expires=" + d.toGMTString();
+        },
+        delete: function (name) {
+            this.set(name, '', -1);
+        },
+        clear: function () {
+            for (let key in this.get()) {
+                this.delete(key);
+            }
+        }
+    }
+
     static AnalogInput = {
         clickElement: function (el) {
             if (!el || el && 'function' !== typeof el.click) {
