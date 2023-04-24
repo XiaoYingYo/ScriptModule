@@ -611,16 +611,16 @@ class global_module {
             var valueToSet = el.value;
             this.clickElement(el);
             this.doFocusElement(el, false);
-            el.dispatchEvent(normalizeEvent(el, 'keydown'));
-            el.dispatchEvent(normalizeEvent(el, 'keypress'));
-            el.dispatchEvent(normalizeEvent(el, 'keyup'));
+            el.dispatchEvent(this.normalizeEvent(el, 'keydown'));
+            el.dispatchEvent(this.normalizeEvent(el, 'keypress'));
+            el.dispatchEvent(this.normalizeEvent(el, 'keyup'));
             el.value !== valueToSet && (el.value = valueToSet);
         },
         setValueForElementByEvent: function (el) {
             var valueToSet = el.value, ev1 = el.ownerDocument.createEvent('HTMLEvents'), ev2 = el.ownerDocument.createEvent('HTMLEvents');
-            el.dispatchEvent(normalizeEvent(el, 'keydown'));
-            el.dispatchEvent(normalizeEvent(el, 'keypress'));
-            el.dispatchEvent(normalizeEvent(el, 'keyup'));
+            el.dispatchEvent(this.normalizeEvent(el, 'keydown'));
+            el.dispatchEvent(this.normalizeEvent(el, 'keypress'));
+            el.dispatchEvent(this.normalizeEvent(el, 'keyup'));
             ev2.initEvent('input', true, true);
             el.dispatchEvent(ev2);
             ev1.initEvent('change', true, true);
