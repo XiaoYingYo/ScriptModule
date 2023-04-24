@@ -589,6 +589,24 @@ class global_module {
                 el.focus();
             }
         },
+        normalizeEvent: function (el, eventName) {
+            var ev;
+            if ('KeyboardEvent' in window) {
+                ev = new window.KeyboardEvent(eventName, {
+                    bubbles: true,
+                    cancelable: false
+                });
+            } else {
+                ev = el.ownerDocument.createEvent('Events');
+                ev.initEvent(eventName, true, false);
+                ev.charCode = 0;
+                ev.keyCode = 0;
+                ev.which = 0;
+                ev.srcElement = el;
+                ev.target = el;
+            }
+            return ev;
+        },
         setValueForElement: function (el) {
             var valueToSet = el.value;
             this.clickElement(el);
