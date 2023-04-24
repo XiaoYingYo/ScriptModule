@@ -582,7 +582,7 @@ class global_module {
         },
         doFocusElement: function (el, setValue) {
             if (setValue) {
-                var existingValue = el.value;
+                let existingValue = el.value;
                 el.focus();
                 el.value !== existingValue && (el.value = existingValue);
             } else {
@@ -590,7 +590,7 @@ class global_module {
             }
         },
         normalizeEvent: function (el, eventName) {
-            var ev;
+            let ev;
             if ('KeyboardEvent' in window) {
                 ev = new window.KeyboardEvent(eventName, {
                     bubbles: true,
@@ -608,7 +608,7 @@ class global_module {
             return ev;
         },
         setValueForElement: function (el) {
-            var valueToSet = el.value;
+            let valueToSet = el.value;
             this.clickElement(el);
             this.doFocusElement(el, false);
             el.dispatchEvent(this.normalizeEvent(el, 'keydown'));
@@ -617,7 +617,7 @@ class global_module {
             el.value !== valueToSet && (el.value = valueToSet);
         },
         setValueForElementByEvent: function (el) {
-            var valueToSet = el.value, ev1 = el.ownerDocument.createEvent('HTMLEvents'), ev2 = el.ownerDocument.createEvent('HTMLEvents');
+            let valueToSet = el.value, ev1 = el.ownerDocument.createEvent('HTMLEvents'), ev2 = el.ownerDocument.createEvent('HTMLEvents');
             el.dispatchEvent(this.normalizeEvent(el, 'keydown'));
             el.dispatchEvent(this.normalizeEvent(el, 'keypress'));
             el.dispatchEvent(this.normalizeEvent(el, 'keyup'));
