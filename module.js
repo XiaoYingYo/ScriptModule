@@ -571,45 +571,61 @@ class global_module {
         return str.substring(str.indexOf(start) + 1, str.indexOf(end));
     }
 
-    static setValueForElement(el) {
-        var valueToSet = el.value;
-        clickElement(el);
-        doFocusElement(el, false);
-        el.dispatchEvent(normalizeEvent(el, 'keydown'));
-        el.dispatchEvent(normalizeEvent(el, 'keypress'));
-        el.dispatchEvent(normalizeEvent(el, 'keyup'));
-        el.value !== valueToSet && (el.value = valueToSet);
-    }
-
-    static setValueForElementByEvent(el) {
-        var valueToSet = el.value, ev1 = el.ownerDocument.createEvent('HTMLEvents'), ev2 = el.ownerDocument.createEvent('HTMLEvents');
-        el.dispatchEvent(normalizeEvent(el, 'keydown'));
-        el.dispatchEvent(normalizeEvent(el, 'keypress'));
-        el.dispatchEvent(normalizeEvent(el, 'keyup'));
-        ev2.initEvent('input', true, true);
-        el.dispatchEvent(ev2);
-        ev1.initEvent('change', true, true);
-        el.dispatchEvent(ev1);
-        el.blur();
-        el.value !== valueToSet && (el.value = valueToSet);
-    }
-
-    static doAllFillOperations(el, afterValSetFunc) {
-        global_module.setValueForElement(el);
-        if (typeof (afterValSetFunc) == "function") {
-            afterValSetFunc(el);
-        }
-        global_module.setValueForElementByEvent(el); // START MODIFICATION
-    }
-
-    static AnalogInput(el, op) {
-        el.value == op || global_module.doAllFillOperations(el, function (theEl) {
-            if (!theEl.type && theEl.tagName.toLowerCase() === 'span') {
-                theEl.innerText = op;
-                return;
+    static AnalogInput = {
+        clickElement: function (el) {
+            if (!el || el && 'function' !== typeof el.click) {
+                return false;
             }
-            theEl.value = op;
-        });
+
+            el.click();
+            return true;
+        },
+        doFocusElement: function (el, setValue) {
+            if (setValue) {
+                var existingValue = el.value;
+                el.focus();
+                el.value !== existingValue && (el.value = existingValue);
+            } else {
+                el.focus();
+            }
+        },
+        setValueForElement: function (el) {
+            var valueToSet = el.value;
+            this.clickElement(el);
+            this.doFocusElement(el, false);
+            el.dispatchEvent(normalizeEvent(el, 'keydown'));
+            el.dispatchEvent(normalizeEvent(el, 'keypress'));
+            el.dispatchEvent(normalizeEvent(el, 'keyup'));
+            el.value !== valueToSet && (el.value = valueToSet);
+        },
+        setValueForElementByEvent: function (el) {
+            var valueToSet = el.value, ev1 = el.ownerDocument.createEvent('HTMLEvents'), ev2 = el.ownerDocument.createEvent('HTMLEvents');
+            el.dispatchEvent(normalizeEvent(el, 'keydown'));
+            el.dispatchEvent(normalizeEvent(el, 'keypress'));
+            el.dispatchEvent(normalizeEvent(el, 'keyup'));
+            ev2.initEvent('input', true, true);
+            el.dispatchEvent(ev2);
+            ev1.initEvent('change', true, true);
+            el.dispatchEvent(ev1);
+            el.blur();
+            el.value !== valueToSet && (el.value = valueToSet);
+        },
+        doAllFillOperations: function (el, afterValSetFunc) {
+            this.setValueForElement(el);
+            if (typeof (afterValSetFunc) == "function") {
+                afterValSetFunc(el);
+            }
+            this.setValueForElementByEvent(el); // START MODIFICATION
+        },
+        AnalogInput: function (el, op) {
+            el.value == op || this.doAllFillOperations(el, function (theEl) {
+                if (!theEl.type && theEl.tagName.toLowerCase() === 'span') {
+                    theEl.innerText = op;
+                    return;
+                }
+                theEl.value = op;
+            });
+        }
     }
 }
 
