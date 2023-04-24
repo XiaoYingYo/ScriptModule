@@ -656,7 +656,7 @@ class global_module {
             if (typeof (afterValSetFunc) == "function") {
                 afterValSetFunc(el);
             }
-            this.setValueForElementByEvent(el); // START MODIFICATION
+            this.setValueForElementByEvent(el);
         },
         AnalogInput: function (el, op) {
             el.value == op || this.doAllFillOperations(el, function (theEl) {
