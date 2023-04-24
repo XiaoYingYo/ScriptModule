@@ -255,7 +255,7 @@ class global_module {
         });
     }
 
-    static RemoveJsOrCss(url) { 
+    static RemoveJsOrCss(url) {
         $("[id='" + url + "']").remove();
     }
 
@@ -569,6 +569,47 @@ class global_module {
 
     static getMiddleString(str, start, end) {
         return str.substring(str.indexOf(start) + 1, str.indexOf(end));
+    }
+
+    static setValueForElement(el) {
+        var valueToSet = el.value;
+        clickElement(el);
+        doFocusElement(el, false);
+        el.dispatchEvent(normalizeEvent(el, 'keydown'));
+        el.dispatchEvent(normalizeEvent(el, 'keypress'));
+        el.dispatchEvent(normalizeEvent(el, 'keyup'));
+        el.value !== valueToSet && (el.value = valueToSet);
+    }
+
+    static setValueForElementByEvent(el) {
+        var valueToSet = el.value, ev1 = el.ownerDocument.createEvent('HTMLEvents'), ev2 = el.ownerDocument.createEvent('HTMLEvents');
+        el.dispatchEvent(normalizeEvent(el, 'keydown'));
+        el.dispatchEvent(normalizeEvent(el, 'keypress'));
+        el.dispatchEvent(normalizeEvent(el, 'keyup'));
+        ev2.initEvent('input', true, true);
+        el.dispatchEvent(ev2);
+        ev1.initEvent('change', true, true);
+        el.dispatchEvent(ev1);
+        el.blur();
+        el.value !== valueToSet && (el.value = valueToSet);
+    }
+
+    static doAllFillOperations(el, afterValSetFunc) {
+        global_module.setValueForElement(el);
+        if (typeof (afterValSetFunc) == "function") {
+            afterValSetFunc(el);
+        }
+        global_module.setValueForElementByEvent(el); // START MODIFICATION
+    }
+
+    static AnalogInput(el, op) {
+        el.value == op || global_module.doAllFillOperations(el, function (theEl) {
+            if (!theEl.type && theEl.tagName.toLowerCase() === 'span') {
+                theEl.innerText = op;
+                return;
+            }
+            theEl.value = op;
+        });
     }
 }
 
