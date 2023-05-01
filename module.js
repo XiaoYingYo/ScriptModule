@@ -517,7 +517,10 @@ class global_module {
         return pwd;
     }
 
-    static cloneAndHide(target) {
+    static cloneAndHide(target, InsertMethod = 0) {
+        if (InsertMethod == null) {
+            InsertMethod = 0;
+        }
         let clone = document.createElement(target.tagName);
         let attributes = target.attributes;
         for (let i = 0; i < attributes.length; i++) {
@@ -529,7 +532,19 @@ class global_module {
         }
         target.style.display = "none";
         let parent = target.parentNode;
-        parent.appendChild(clone);
+        switch (InsertMethod) {
+            case 0:
+                parent.appendChild(clone);
+                break;
+            case 1:
+                parent.insertBefore(clone, target.nextSibling);
+                break;
+            case 2:
+                parent.insertBefore(clone, target);
+                break;
+            default:
+                parent.appendChild(clone);
+        }
         return clone;
     }
 
