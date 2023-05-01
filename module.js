@@ -517,7 +517,7 @@ class global_module {
         return pwd;
     }
 
-    static cloneAndHide(target, InsertMethod = 0) {
+    static cloneAndHide(target, InsertMethod = 0, BaseElement = null) {
         if (InsertMethod == null) {
             InsertMethod = 0;
         }
@@ -531,7 +531,12 @@ class global_module {
             clone.appendChild(childNodes[i].cloneNode(true));
         }
         target.style.display = "none";
-        let parent = target.parentNode;
+        let parent;
+        if (BaseElement !== null) {
+            parent = BaseElement;
+        } else {
+            parent = target.parentNode;
+        }
         switch (InsertMethod) {
             case 0:
                 parent.appendChild(clone);
