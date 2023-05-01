@@ -364,15 +364,6 @@ class global_module {
         return true;
     }
 
-    static hideAndCreateDom(Element) {
-        let dom = $(Element).eq(0);
-        $(dom).hide();
-        let clone = $(dom).clone();
-        $(dom).after(clone);
-        clone.show();
-        return clone;
-    }
-
     static getLayerelement(layeri) {
         return $("div[id^='layui-layer" + layeri + "'][type][times='" + layeri + "']").eq(0)
     }
@@ -515,6 +506,15 @@ class global_module {
             pwd += $chars.charAt(Math.floor(Math.random() * maxPos));
         }
         return pwd;
+    }
+
+    static hideAndCreateDom(Element) {
+        let dom = $(Element).eq(0);
+        $(dom).hide();
+        let clone = $(dom).clone();
+        $(dom).after(clone);
+        clone.show();
+        return clone;
     }
 
     static cloneAndHide(target, InsertMethod = 0, BaseElement = null) {
