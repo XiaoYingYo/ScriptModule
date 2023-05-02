@@ -592,6 +592,19 @@ class global_module {
     }
 
     static Cookie = {
+        clearAllCookies: function (domain) {
+            var cookies = document.cookie.split("; ");
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i];
+                var eqPos = cookie.indexOf("=");
+                var name = eqPos > -1 ? cookie.substr(0, eqPos) : cookie;
+                var cookieDomain = location.hostname.replace(/^www\./i, "");
+                if (cookieDomain === domain || cookieDomain.endsWith("." + domain)) {
+                    document.cookie =
+                        name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;domain=" + cookieDomain + ";path=/";
+                }
+            }
+        },
         get: function (name) {
             let match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
             return match && decodeURIComponent(match[2]);
@@ -611,6 +624,8 @@ class global_module {
             for (let key in this.get()) {
                 this.delete(key);
             }
+            let domain = location.hostname.replace(/^www\./i, "");
+            this.clearAllCookies(domain);
         }
     }
 
