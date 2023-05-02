@@ -614,6 +614,25 @@ class global_module {
         }
     }
 
+    static LocalStorage = {
+        exportLocalStorage: function () {
+            let localStorageData = {};
+            for (let i = 0; i < localStorage.length; i++) {
+                let key = localStorage.key(i);
+                let value = localStorage.getItem(key);
+                localStorageData[key] = value;
+            };
+            let jsonString = JSON.stringify(localStorageData, null, 2);
+            return jsonString;
+        },
+        importLocalStorage: function (localStorageString) {
+            let localStorageData = JSON.parse(localStorageString);
+            for (let key in localStorageData) {
+                localStorage.setItem(key, localStorageData[key]);
+            };
+        }
+    }
+
     static AnalogInput = {
         clickElement: function (el) {
             if (!el || el && 'function' !== typeof el.click) {
