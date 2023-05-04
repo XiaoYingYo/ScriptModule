@@ -1,6 +1,6 @@
 (() => {
-    var unsafeWindow = window.unsafeWindow || document.defaultView || window;
-    if (unsafeWindow['__hookRequest__'] != null) {
+    var contextWindow = window.unsafeWindow || document.defaultView || window;
+    if (contextWindow['__hookRequest__'] != null) {
         return;
     }
     var globalVariable = new Map();
@@ -25,9 +25,9 @@
     }
 
     function hookFetch() {
-        const originalFetch = unsafeWindow.fetch;
+        const originalFetch = contextWindow.fetch;
         globalVariable.set('Fetch', originalFetch);
-        unsafeWindow.fetch = (...args) => {
+        contextWindow.fetch = (...args) => {
             let U = args[0];
             if (U.indexOf('http') == -1) {
                 if (U[0] !== '/') {
@@ -81,7 +81,7 @@
     }
 
     function hookXhr() {
-        const XHRProxy = new Proxy(unsafeWindow.XMLHttpRequest, {
+        const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
                 const xhr = new target(...args);
                 const originalOpen = xhr.open;
@@ -126,7 +126,8 @@
                 return xhr;
             }
         });
-        unsafeWindow.XMLHttpRequest = XHRProxy;
+        globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
+        contextWindow.XMLHttpRequest = XHRProxy;
     }
 
     (async () => {
@@ -136,7 +137,7 @@
         hookXhr();
     })();
 
-    unsafeWindow['__hookRequest__'] = {
+    contextWindow['__hookRequest__'] = {
         FetchCallback: {
             add: (pathname, callback) => {
                 let list = FetchMapList.get(pathname) || (FetchMapList.set(pathname, []), FetchMapList.get(pathname));
