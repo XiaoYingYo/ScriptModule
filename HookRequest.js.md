@@ -29,7 +29,7 @@ let index = win['__hookRequest__'].FetchCallback.add('/api/auth/session', (_obje
         // English: Read the response body or try to modify the response body _object.text
     }
     // 中文: 如果有修改请返回修改后的 _object
-    // 否则可不写return 或 return null
+    // 否则可不写 return 或 return null
     // English: If there is a modification, please return the modified _object,
     // otherwise you can not write return or return null
     return _object;
