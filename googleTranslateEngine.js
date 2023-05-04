@@ -20,7 +20,7 @@ class TranslateMachine {
             WebWhatsApp: {
                 name: 'WhatsApp',
                 matcher: /https:\/\/web\.whatsapp\.com\//,
-                selector: this.baseSelector('nav', 1, "*").bind(this),
+                selector: this.baseSelector('nav', 1, '*').bind(this),
                 textGetter: this.baseTextGetter.bind(this),
                 textSetter: this.baseTextSetter.bind(this)
             }
@@ -185,7 +185,7 @@ class TranslateMachine {
         });
     }
 
-    async Translate(raw, sourceLang, targetLang) {
+    async Translate(raw, sourceLang, targetLang, Record = true) {
         const options = {
             method: 'POST',
             url: 'https://translate.google.com/_/TranslateWebserverUi/data/batchexecute',
@@ -197,21 +197,27 @@ class TranslateMachine {
             anonymous: true,
             nocache: true
         };
-        return await this.BaseTranslate('谷歌翻译', raw, options, function (res) {
-            var slicedRes = res.slice(res.indexOf('['));
-            var parsedRes = JSON.parse(slicedRes);
-            var extractedRes = parsedRes[0][2];
-            if (typeof extractedRes == 'string') {
-                extractedRes = JSON.parse(extractedRes);
-            }
-            let original = extractedRes[1][4][0];
-            var finalRes = extractedRes[1][0][0][5]
-                .map(function (item) {
-                    return item[0];
-                })
-                .join('');
-            return { finalRes, original };
-        });
+        return await this.BaseTranslate(
+            '谷歌翻译',
+            raw,
+            options,
+            function (res) {
+                var slicedRes = res.slice(res.indexOf('['));
+                var parsedRes = JSON.parse(slicedRes);
+                var extractedRes = parsedRes[0][2];
+                if (typeof extractedRes == 'string') {
+                    extractedRes = JSON.parse(extractedRes);
+                }
+                let original = extractedRes[1][4][0];
+                var finalRes = extractedRes[1][0][0][5]
+                    .map(function (item) {
+                        return item[0];
+                    })
+                    .join('');
+                return { finalRes, original };
+            },
+            Record
+        );
     }
 
     async translate_gg(raw) {
@@ -302,7 +308,7 @@ class TranslateMachine {
         }
     }
 
-    async BaseTranslate(name, raw, options, processer) {
+    async BaseTranslate(name, raw, options, processer, Record = true) {
         const toDo = async () => {
             var tmp;
             try {
@@ -312,7 +318,9 @@ class TranslateMachine {
                 let result = finalRes;
                 if (result) {
                     try {
-                        await this.sessionStorage.setItem(name + '-' + raw, result).bind(this);
+                        if (Record) {
+                            await this.sessionStorage.setItem(name + '-' + raw, result).bind(this);
+                        }
                     } catch (e) {}
                 }
                 return { result, original };
@@ -328,13 +336,13 @@ class TranslateMachine {
 
     Request(options) {
         return new Promise(async (resolve) => {
-            options.onload = function (res) { 
+            options.onload = function (res) {
                 if (res.status !== 200) {
                     resolve('');
                     return;
                 }
                 resolve(res);
-            }
+            };
             GM_xmlhttpRequest(options);
         });
     }
