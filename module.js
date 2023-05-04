@@ -76,7 +76,15 @@ class global_module {
                 }
             } else {
                 for (let selector of selectors) {
-                    let foundElements = document.querySelectorAll(selector);
+                    let foundElements = null;
+                    try {
+                        foundElements = document.querySelectorAll(selector);
+                    } catch (e) {
+                        foundElements = $(selector);
+                        if (foundElements.length != 0) {
+                            foundElements = foundElements[0];
+                        }
+                    }
                     if (foundElements.length > 0) {
                         elements = foundElements;
                         break;
