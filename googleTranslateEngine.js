@@ -333,8 +333,7 @@ class TranslateMachine {
                     resolve('');
                     return;
                 }
-                let text = res.responseText;
-                resolve(text);
+                resolve(res);
             }
             GM_xmlhttpRequest(options);
         });
