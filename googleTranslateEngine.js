@@ -49,7 +49,6 @@ class TranslateMachine {
                     this.pass_lang(text)
                         .then((lang) => this.transdict[choice](text, lang))
                         .then((s) => {
-                            console.log(s);
                             let result = s['result'];
                             let origin = s['origin'];
                             rule.textSetter(now, result);
