@@ -145,9 +145,14 @@
                 return index;
             },
             del: (pathname, index) => {
-                let list = FetchMapList.get(pathname);
-                if (list == null) return false;
-                list.splice(index - 1, 1);
+                try {
+                    let list = FetchMapList.get(pathname);
+                    if (list == null) return false;
+                    list.splice(index - 1, 1);
+                } catch (e) {
+                    new Error(e);
+                    return false;
+                }
                 return true;
             }
         },
