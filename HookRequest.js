@@ -1,7 +1,8 @@
 (() => {
     var globalVariable = new Map();
-    var unsafeWindow = document.defaultView;
+    var unsafeWindow = window.unsafeWindow || document.defaultView || window;
     var FetchMapList = new Map();
+    var XhrMapList = new Map();
 
     function hookFetch() {
         const originalFetch = unsafeWindow.fetch;
@@ -23,28 +24,33 @@
                 if (callback == null) return;
                 if (callback.length == 0) return;
                 let deliveryTask = (callback, text) => {
+                    let newText = text;
                     for (let i = 0; i < callback.length; i++) {
+                        let tempText = null;
                         try {
-                            callback[i](text);
+                            tempText = callback[i](newText, args);
                         } catch (e) {
                             new Error(e);
                         }
+                        if (tempText == null) { 
+                            continue;
+                        }
+                        newText = tempText;
                     }
+                    return newText;
                 };
                 apply.then((response) => {
                     let text = response.text,
                         json = response.json;
                     response.text = () => {
                         return text.apply(response).then((text) => {
-                            deliveryTask(callback, text);
-                            return text;
+                            return deliveryTask(callback, text);
                         });
                     };
                     response.json = () => {
                         return json.apply(response).then((json) => {
                             let text = JSON.stringify(json);
-                            deliveryTask(callback, text);
-                            return json;
+                            return JSON.parse(deliveryTask(callback, text));
                         });
                     };
                 });
@@ -53,7 +59,19 @@
         };
     }
 
+    function hookXhr() {
+        const originalXhrOpen = unsafeWindow.XMLHttpRequest.prototype.open;
+        const originalXhrSend = unsafeWindow.XMLHttpRequest.prototype.send;
+        globalVariable.set('XhrOpen', originalXhrOpen);
+        globalVariable.set('XhrSend', originalXhrSend);
+        unsafeWindow.XMLHttpRequest.prototype.open = (...args) => {
+        };
+        unsafeWindow.XMLHttpRequest.prototype.send = (...args) => {
+        };
+    }
+
     hookFetch();
+    hookXhr();
 
     unsafeWindow['__hookRequest__'] = {
         FetchCallback: {
@@ -65,6 +83,20 @@
             },
             del: (pathname, index) => {
                 let list = FetchMapList.get(pathname);
+                if (list == null) return false;
+                list.splice(index - 1, 1);
+                return true;
+            }
+        },
+        XhrCallback: {
+            add: (pathname, callback) => {
+                let list = XhrMapList.get(pathname) || (XhrMapList.set(pathname, []), XhrMapList.get(pathname));
+                list.push(callback);
+                let index = list.length;
+                return index;
+            },
+            del: (pathname, index) => {
+                let list = XhrMapList.get(pathname);
                 if (list == null) return false;
                 list.splice(index - 1, 1);
                 return true;
