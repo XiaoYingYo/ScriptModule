@@ -18,9 +18,16 @@ del: (pathname, index) -> return true / false
 ```
 ```JavaScript
 let index = win['__hookRequest__'].FetchCallback.add('/api/auth/session', (_object, period) => {
-    if (period !== 'done') { 
-        return;
+    if (period === 'preRequest') { 
+        // 中文: 读取请求参数或尝试修改请求参数
+        // English: Read the request parameters or try to modify the request parameters
+    }else if(period === 'done'){
+        // 中文: 读取响应体或尝试修改响应体
+        // English: Read the response body or try to modify the response body
     }
+    // 中文: 如果有修改请返回修改后的 _object,否则可不写return 或 return null
+    // English: If there is a modification, please return the modified _object, otherwise you can not write return or return null
+    return _object;
 });
 ```
 ```text
