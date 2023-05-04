@@ -187,7 +187,7 @@ class TranslateMachine {
 
     async Translate(raw, sourceLang, targetLang, Record = true) {
         let text = await this.sessionStorage.getItem('谷歌翻译' + '-' + raw);
-        if (text) {
+        if (text && text != '') {
             return new Promise(async (resolve) => {
                 resolve(text);
             });
