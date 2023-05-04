@@ -186,6 +186,12 @@ class TranslateMachine {
     }
 
     async Translate(raw, sourceLang, targetLang, Record = true) {
+        let text = await this.sessionStorage.getItem('谷歌翻译' + '-' + raw);
+        if (text) {
+            return new Promise(async (resolve) => {
+                resolve(text);
+            });
+        }
         const options = {
             method: 'POST',
             url: 'https://translate.google.com/_/TranslateWebserverUi/data/batchexecute',
