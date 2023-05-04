@@ -19,8 +19,14 @@ class TranslateMachine {
     }
 
     async init(args1, args2, args3) {
+        // let rule = {
+        //     name: 'WhatsApp',
+        //     selector: this.baseSelector('nav', 0, '*').bind(this),
+        //     textGetter: this.baseTextGetter.bind(this),
+        //     textSetter: this.baseTextSetter.bind(this)
+        // };
         let rule = null;
-        if (args != null) {
+        if (args1 != null && args2 != null && args3 != null) {
             rule = {};
             rule.name = '';
             rule.selector = this.baseSelector(args1, args2, args3).bind(this);
