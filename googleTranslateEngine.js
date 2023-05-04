@@ -16,22 +16,16 @@ class TranslateMachine {
         this.show_info = true;
         this.fullscrenn_hidden = true;
         this.globalProcessingSave = [];
-        this.rules = {
-            WebWhatsApp: {
-                name: 'WhatsApp',
-                matcher: /https:\/\/web\.whatsapp\.com\//,
-                selector: this.baseSelector('nav', 1, '*').bind(this),
-                textGetter: this.baseTextGetter.bind(this),
-                textSetter: this.baseTextSetter.bind(this)
-            }
-        };
     }
 
     async init() {
-        const GetActiveRule = () => {
-            return this.rules['WebWhatsApp'];
+        let rule = {
+            name: 'WhatsApp',
+            matcher: /https:\/\/web\.whatsapp\.com\//,
+            selector: this.baseSelector('nav', 1, '*').bind(this),
+            textGetter: this.baseTextGetter.bind(this),
+            textSetter: this.baseTextSetter.bind(this)
         };
-        let rule = GetActiveRule();
         let main = async (_) => {
             if (!rule) return;
             const choice = '谷歌翻译';
