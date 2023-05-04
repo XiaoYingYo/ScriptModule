@@ -185,7 +185,7 @@ class TranslateMachine {
         });
     }
 
-    async translate_gg_2(raw, sourceLang, targetLang) {
+    async Translate(raw, sourceLang, targetLang) {
         const options = {
             method: 'POST',
             url: 'https://translate.google.com/_/TranslateWebserverUi/data/batchexecute',
