@@ -20,7 +20,7 @@ class TranslateMachine {
             WebWhatsApp: {
                 name: 'WhatsApp',
                 matcher: /https:\/\/web\.whatsapp\.com\//,
-                selector: this.baseSelector('span[data-testid="tail-in"][data-icon="tail-in"]', 1, "div[class='copyable-text'][data-pre-plain-text] div").bind(this),
+                selector: this.baseSelector('nav', 1, "*").bind(this),
                 textGetter: this.baseTextGetter.bind(this),
                 textSetter: this.baseTextSetter.bind(this)
             }
