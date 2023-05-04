@@ -7,10 +7,19 @@ Sample Code
 var win = window.unsafeWindow || document.defaultView || window;
 // FetchCallback : { add , del }
 // add: (pathname, callback) -> return index
+// ... pathname 
+// ...... English: Path Of Webpage, Does Not Need To Contain The Domain Name, Does Not Need To Contain The Get Parameters, Must Start With /
+// ...... Chinese: 网页路径 无需包含域名 无需包含Get参数 必须以 / 开头
+// ... callback : (_object, period)
+// ...... _object -> (args,text)
+// ...... period -> preRequest / done
 // del: (pathname, index) -> return true / false
-win['__hookRequest__'].FetchCallback.add('/api/auth/session', (_object, period) => {
+let index = win['__hookRequest__'].FetchCallback.add('/api/auth/session', (_object, period) => {
     if (period !== 'done') { 
         return;
     }
 });
+
+// Delete
+win['__hookRequest__'].FetchCallback.del('/api/auth/session', index);
 ```
