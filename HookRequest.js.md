@@ -57,3 +57,9 @@ add: (pathname, callback) -> return index
 ...... period -> preRequest / done
 del: (pathname, index) -> return true / false
 ```
+```text
+中文:使用到的脚本
+English: Scripts Used
+
+https://greasyfork.org/zh-CN/scripts/464781-pikpak-enhance
+```
