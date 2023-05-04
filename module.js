@@ -647,7 +647,7 @@ class global_module {
                 if (callback && callback(null, item)) {
                     return true;
                 }
-                if (objectDepthEnumerate(item, callback)) {
+                if (this.objectDepthEnumerate(item, callback)) {
                     return true;
                 }
             });
@@ -656,7 +656,7 @@ class global_module {
                 if (callback && callback(key, _object[key])) {
                     return true;
                 }
-                if (objectDepthEnumerate(_object[key], callback)) { 
+                if (this.objectDepthEnumerate(_object[key], callback)) {
                     return true;
                 }
             });
