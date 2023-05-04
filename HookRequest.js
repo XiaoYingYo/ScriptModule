@@ -1,14 +1,33 @@
 (() => {
-    var globalVariable = new Map();
     var unsafeWindow = window.unsafeWindow || document.defaultView || window;
+    if (unsafeWindow['__hookRequest__'] != null) { 
+        return;
+    }
+    var globalVariable = new Map();
     var FetchMapList = new Map();
     var XhrMapList = new Map();
+
+    function deliveryTask(callbackList, _object, period) {
+        let newObject = _object;
+        for (let i = 0; i < callbackList.length; i++) {
+            let tempObject = null;
+            try {
+                tempObject = callbackList[i](newObject, period);
+            } catch (e) {
+                new Error(e);
+            }
+            if (tempObject == null) {
+                continue;
+            }
+            newObject = tempObject;
+        }
+        return newObject;
+    }
 
     function hookFetch() {
         const originalFetch = unsafeWindow.fetch;
         globalVariable.set('Fetch', originalFetch);
         unsafeWindow.fetch = (...args) => {
-            let apply = originalFetch.apply(this, args);
             let U = args[0];
             if (U.indexOf('http') == -1) {
                 if (U[0] !== '/') {
@@ -17,57 +36,92 @@
                 }
                 U = location.origin + U;
             }
+            let apply = null;
             (() => {
                 let url = new URL(U),
                     pathname = url.pathname,
                     callback = FetchMapList.get(pathname);
                 if (callback == null) return;
-                if (callback.length == 0) return;
-                let deliveryTask = (callback, text) => {
-                    let newText = text;
-                    for (let i = 0; i < callback.length; i++) {
-                        let tempText = null;
-                        try {
-                            tempText = callback[i](newText, args);
-                        } catch (e) {
-                            new Error(e);
-                        }
-                        if (tempText == null) { 
-                            continue;
-                        }
-                        newText = tempText;
-                    }
-                    return newText;
-                };
+                if (callback.length === 0) return;
+                let newObject = deliveryTask(callback, { args }, 'preRequest');
+                if (newObject && newObject.args) {
+                    args = newObject.args;
+                }
+                apply = originalFetch.apply(this, args);
                 apply.then((response) => {
                     let text = response.text,
                         json = response.json;
                     response.text = () => {
                         return text.apply(response).then((text) => {
-                            return deliveryTask(callback, text);
+                            let _object = deliveryTask(callback, { text, args }, 'done');
+                            if (_object && _object.text) {
+                                text = _object.text;
+                            }
+                            return text;
                         });
                     };
                     response.json = () => {
                         return json.apply(response).then((json) => {
                             let text = JSON.stringify(json);
-                            return JSON.parse(deliveryTask(callback, text));
+                            return JSON.parse(deliveryTask(callback, { text, args }, 'done'));
                         });
                     };
                 });
             })();
+            if (apply == null) {
+                apply = originalFetch.apply(this, args);
+            }
             return apply;
         };
     }
 
     function hookXhr() {
-        const originalXhrOpen = unsafeWindow.XMLHttpRequest.prototype.open;
-        const originalXhrSend = unsafeWindow.XMLHttpRequest.prototype.send;
-        globalVariable.set('XhrOpen', originalXhrOpen);
-        globalVariable.set('XhrSend', originalXhrSend);
-        unsafeWindow.XMLHttpRequest.prototype.open = (...args) => {
-        };
-        unsafeWindow.XMLHttpRequest.prototype.send = (...args) => {
-        };
+        const XHRProxy = new Proxy(unsafeWindow.XMLHttpRequest, {
+            construct(target, args) {
+                const xhr = new target(...args);
+                const originalOpen = xhr.open;
+                const originalSend = xhr.send;
+                xhr.open = function () {
+                    return originalOpen.apply(xhr, arguments);
+                };
+                xhr.send = function () {
+                    let o = function (args) { 
+                        return originalSend.apply(xhr, args);
+                    }
+                    let args = arguments;
+                    let U = xhr.responseURL;
+                    if (U.indexOf('http') == -1) {
+                        if (U[0] !== '/') {
+                            let pathname = new URL(location.href).pathname;
+                            U = pathname + U;
+                        }
+                        U = location.origin + U;
+                    }
+                    let pathname = new URL(U).pathname;
+                    let callback = XhrMapList.get(pathname);
+                    if (callback == null) return o(args);
+                    if (callback.length === 0) return o(args);
+                    let newObject = deliveryTask(callback, { args }, 'preRequest');
+                    if (newObject && newObject.args) {
+                        args = newObject.args;
+                    }
+                    const onReadyStateChangeOriginal = xhr.onreadystatechange;
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4 && xhr.status === 200) {
+                            let text = xhr.responseText;
+                            let newObject = deliveryTask(callback, { text, args }, 'done');
+                            if (newObject && newObject.text) {
+                                xhr.responseText = newObject.text;
+                            }
+                        }
+                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
+                    };
+                    return o(args);
+                };
+                return xhr;
+            }
+        });
+        unsafeWindow.XMLHttpRequest = XHRProxy;
     }
 
     hookFetch();
