@@ -328,7 +328,8 @@ class TranslateMachine {
 
     Request(options) {
         return new Promise(async (resolve) => {
-            resolve(await GM_xmlhttpRequest(options));
+            let ret = await GM_xmlhttpRequest(options);
+            resolve(ret);
         });
     }
 }
