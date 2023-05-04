@@ -1,6 +1,6 @@
 ```text
-Please note that whether you are a grease monkey script or any form of Js code injection, please uniformly get the window of the web page context, not the window in the grease monkey script
-请注意无论您是油猴脚本还是任何形式的 Js 代码注入形式,请统一获取到网页上下文的window,而非在油猴脚本中的window
+English: Please note that whether you are a grease monkey script or any form of Js code injection, please uniformly get the window of the web page context, not the window in the grease monkey script
+中文: 请注意无论您是油猴脚本还是任何形式的 Js 代码注入形式,请统一获取到网页上下文的window,而非在油猴脚本中的window
 ```
 ```JavaScript
 var win = window.unsafeWindow || document.defaultView || window;
@@ -30,8 +30,9 @@ Delete
 win['__hookRequest__'].FetchCallback.del('/api/auth/session', index);
 ```
 ```JavaScript
-如果是Xhr,则
-win['__hookRequest__'].FetchCallback
+// English: If it is Xhr, then FetchCallback is changed to XhrCallback
+// 中文: 如果是Xhr,则 FetchCallback 改为 XhrCallback
+win['__hookRequest__'].XhrCallback.add(...);
 ```
 ```text
 XhrCallback : { add , del }
