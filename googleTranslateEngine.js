@@ -22,7 +22,7 @@ class TranslateMachine {
         let rule = {
             name: 'WhatsApp',
             matcher: /https:\/\/web\.whatsapp\.com\//,
-            selector: this.baseSelector('nav', 1, '*').bind(this),
+            selector: this.baseSelector('nav', 0, '*').bind(this),
             textGetter: this.baseTextGetter.bind(this),
             textSetter: this.baseTextSetter.bind(this)
         };
