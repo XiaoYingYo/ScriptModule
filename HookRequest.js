@@ -1,6 +1,6 @@
 (() => {
     var unsafeWindow = window.unsafeWindow || document.defaultView || window;
-    if (unsafeWindow['__hookRequest__'] != null) { 
+    if (unsafeWindow['__hookRequest__'] != null) {
         return;
     }
     var globalVariable = new Map();
@@ -90,9 +90,9 @@
                     return originalOpen.apply(xhr, arguments);
                 };
                 xhr.send = function () {
-                    let o = function (args) { 
+                    let o = function (args) {
                         return originalSend.apply(xhr, args);
-                    }
+                    };
                     let args = arguments;
                     let U = xhr.responseURL;
                     if (U.indexOf('http') == -1) {
@@ -129,8 +129,12 @@
         unsafeWindow.XMLHttpRequest = XHRProxy;
     }
 
-    hookFetch();
-    hookXhr();
+    (async () => {
+        hookFetch();
+    })();
+    (async () => {
+        hookXhr();
+    })();
 
     unsafeWindow['__hookRequest__'] = {
         FetchCallback: {
