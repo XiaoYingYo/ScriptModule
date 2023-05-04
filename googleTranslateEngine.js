@@ -18,13 +18,15 @@ class TranslateMachine {
         this.globalProcessingSave = [];
     }
 
-    async init(rule) {
-        // let rule = {
-        //     name: 'WhatsApp',
-        //     selector: this.baseSelector('nav', 0, '*').bind(this),
-        //     textGetter: this.baseTextGetter.bind(this),
-        //     textSetter: this.baseTextSetter.bind(this)
-        // };
+    async init(args1, args2, args3) {
+        let rule = null;
+        if (args != null) {
+            rule = {};
+            rule.name = '';
+            rule.selector = this.baseSelector(args1, args2, args3).bind(this);
+            rule.textGetter = this.baseTextGetter.bind(this);
+            rule.textSetter = this.baseTextSetter.bind(this);
+        }
         let main = async (_) => {
             if (!rule) return;
             const choice = '谷歌翻译';
