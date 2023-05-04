@@ -82,7 +82,7 @@ class global_module {
                     } catch (e) {
                         foundElements = $(selector);
                         if (foundElements.length != 0) {
-                            foundElements = foundElements.eq(0)[0];
+                            foundElements = [foundElements.eq(0)[0]];
                         }
                     }
                     if (foundElements.length > 0) {
