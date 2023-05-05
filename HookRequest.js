@@ -55,7 +55,7 @@
                         let originalRead = originalReader.read;
                         originalReader.read = function () {
                             return originalRead.apply(this, arguments).then(function (result) {
-                                let tempObject = deliveryTask(callback, { doingDone, result, args }, 'doing');
+                                let tempObject = deliveryTask(callback, { result, args }, 'doing');
                                 if (tempObject && tempObject.result) {
                                     result = tempObject.result;
                                 }
