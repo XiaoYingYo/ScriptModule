@@ -49,6 +49,23 @@
                 }
                 apply = originalFetch.apply(this, args);
                 apply.then((response) => {
+                    let originalGetReader = response.body.getReader;
+                    response.body.getReader = function () {
+                        let originalRead = originalGetReader.apply(this, arguments).read;
+                        return function () {
+                            return originalRead().then(function (result) {
+                                if (result.done) {
+                                    return result;
+                                } else {
+                                    let tempObject = deliveryTask(callback, { binary: result.value, args }, 'doing');
+                                    if (tempObject && tempObject.binary) {
+                                        result.value = tempObject.binary;
+                                    }
+                                    return result;
+                                }
+                            });
+                        }
+                    }
                     let text = response.text,
                         json = response.json;
                     response.text = () => {
