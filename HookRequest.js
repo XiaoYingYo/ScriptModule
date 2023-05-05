@@ -102,9 +102,9 @@
                 let xhr = new target(...args);
                 let newXhr = new Proxy(xhr, {
                     get(target, key) {
+                        debugger;
                         if (key === 'responseText') {
                             if (newText != null) {
-                                debugger;
                                 return newText;
                             }
                         }
