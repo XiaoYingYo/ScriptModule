@@ -99,8 +99,8 @@
         const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
                 let newText = null;
-                let Tempxhr = new target(...args);
-                let newXhr = new Proxy(Tempxhr, {
+                let tempXhr = new target(...args);
+                let newXhr = new Proxy(tempXhr, {
                     get(target, key) {
                         debugger;
                         if (key === 'responseText') {
