@@ -55,16 +55,12 @@
                         let originalRead = originalReader.read;
                         originalReader.read = function () {
                             return originalRead.apply(this, arguments).then(function (result) {
-                                if (result.done) {
-                                    return result;
-                                } else {
-                                    let doingDone = result.done;
-                                    let tempObject = deliveryTask(callback, { doingDone, binary: result.value, args }, 'doing');
-                                    if (tempObject && tempObject.binary) {
-                                        result.value = tempObject.binary;
-                                    }
-                                    return result;
+                                let doingDone = result.done;
+                                let tempObject = deliveryTask(callback, { doingDone, binary: result.value, args }, 'doing');
+                                if (tempObject && tempObject.binary) {
+                                    result.value = tempObject.binary;
                                 }
+                                return result;
                             });
                         };
                         return originalReader;
