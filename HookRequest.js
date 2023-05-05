@@ -143,11 +143,10 @@
                     };
                     return o(args);
                 };
-                return new Proxy(xhr, {
-                    get(target, key) {
-                        return target[key];
-                    }
-                });
+                return xhr;
+            },
+            get(target, key) {
+                return target[key];
             }
         });
         globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
