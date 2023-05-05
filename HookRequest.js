@@ -112,8 +112,8 @@
                     }
                 });
                 let xhr = newXhr;
-                let originalOpen = xhr.open;
-                let originalSend = xhr.send;
+                let originalOpen = tempXhr.open;
+                let originalSend = tempXhr.send;
                 let url = '';
                 xhr.open = function () {
                     url = arguments[1];
