@@ -98,10 +98,10 @@
     function hookXhr() {
         const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
-                const xhr = new target(...args);
-                const originalOpen = xhr.open;
-                const originalSend = xhr.send;
-                const url = '';
+                let xhr = new target(...args);
+                let originalOpen = xhr.open;
+                let originalSend = xhr.send;
+                let url = '';
                 xhr.open = function () {
                     url = arguments[1];
                     return originalOpen.apply(xhr, arguments);
