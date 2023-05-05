@@ -101,7 +101,9 @@
                 const xhr = new target(...args);
                 const originalOpen = xhr.open;
                 const originalSend = xhr.send;
+                const url = '';
                 xhr.open = function () {
+                    url = arguments[1];
                     return originalOpen.apply(xhr, arguments);
                 };
                 xhr.send = function () {
@@ -109,7 +111,7 @@
                         return originalSend.apply(xhr, args);
                     };
                     let args = arguments;
-                    let U = xhr.responseURL;
+                    let U = xhr.responseURL == '' ? url : xhr.responseURL;
                     if (U.indexOf('http') == -1) {
                         if (U[0] !== '/') {
                             let pathname = new URL(location.href).pathname;
