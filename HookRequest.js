@@ -144,9 +144,6 @@
                     return o(args);
                 };
                 return xhr;
-            },
-            get(target, key) {
-                return target[key];
             }
         });
         globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
