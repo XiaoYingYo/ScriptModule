@@ -134,6 +134,9 @@
                             let newObject = deliveryTask(callback, { text, args }, 'done');
                             if (newObject && newObject.text) {
                                 xhr.responseText = newObject.text;
+                                if (xhr.responseText !== newObject.text) {
+                                    debugger;
+                                }
                             }
                         }
                         onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
