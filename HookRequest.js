@@ -102,8 +102,8 @@
                 let tempXhr = new target(...args);
                 let newXhr = new Proxy(tempXhr, {
                     get(target, key) {
-                        debugger;
                         if (key === 'responseText') {
+                            debugger;
                             if (newText != null) {
                                 return newText;
                             }
