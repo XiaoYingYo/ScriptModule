@@ -98,7 +98,20 @@
     function hookXhr() {
         const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
+                let newText = null;
                 let xhr = new target(...args);
+                let newXhr = new Proxy(xhr, {
+                    get(target, key) {
+                        if (key === 'responseText') {
+                            if (newText != null) {
+                                debugger;
+                                return newText;
+                            }
+                        }
+                        return target[key];
+                    }
+                });
+                xhr = newXhr;
                 let originalOpen = xhr.open;
                 let originalSend = xhr.send;
                 let url = '';
@@ -133,17 +146,7 @@
                             let text = xhr.responseText;
                             let newObject = deliveryTask(callback, { text, args }, 'done');
                             if (newObject && newObject.text) {
-                                xhr.responseText = newObject.text;
-                                let newXhr = new Proxy(xhr, {
-                                    get(target, key) {
-                                        if (key === 'responseText') {
-                                            debugger;
-                                            return newObject.text;
-                                        }
-                                        return target[key];
-                                    }
-                                });
-                                return onReadyStateChangeOriginal.apply(newXhr, args);
+                                newText = newObject.text;
                             }
                         }
                         onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
