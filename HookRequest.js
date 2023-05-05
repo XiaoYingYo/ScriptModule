@@ -98,30 +98,17 @@
     function hookXhr() {
         const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
-                let newText = null;
-                let tempXhr = new target(...args);
-                let newXhr = new Proxy(tempXhr, {
-                    get(target, key) {
-                        if (key === 'responseText') {
-                            debugger;
-                            if (newText != null) {
-                                return newText;
-                            }
-                        }
-                        return target[key];
-                    }
-                });
-                let xhr = newXhr;
-                let originalOpen = tempXhr.open;
-                let originalSend = tempXhr.send;
+                let xhr = new target(...args);
+                let originalOpen = xhr.open;
+                let originalSend = xhr.send;
                 let url = '';
                 xhr.open = function () {
                     url = arguments[1];
-                    return originalOpen.apply(tempXhr, arguments);
+                    return originalOpen.apply(xhr, arguments);
                 };
                 xhr.send = function () {
                     let o = function (args) {
-                        return originalSend.apply(tempXhr, args);
+                        return originalSend.apply(xhr, args);
                     };
                     let args = arguments;
                     let U = xhr.responseURL == '' ? url : xhr.responseURL;
@@ -140,16 +127,19 @@
                     if (newObject && newObject.args) {
                         args = newObject.args;
                     }
-                    const onReadyStateChangeOriginal = tempXhr.onreadystatechange;
+                    const onReadyStateChangeOriginal = xhr.onreadystatechange;
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState === 4 && xhr.status === 200) {
                             let text = xhr.responseText;
                             let newObject = deliveryTask(callback, { text, args }, 'done');
                             if (newObject && newObject.text) {
-                                newText = newObject.text;
+                                xhr.responseText = newObject.text;
+                                if (xhr.responseText !== newObject.text) {
+                                    debugger;
+                                }
                             }
                         }
-                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(tempXhr, args);
+                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
                     };
                     return o(args);
                 };
