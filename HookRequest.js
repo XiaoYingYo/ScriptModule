@@ -58,7 +58,8 @@
                                 if (result.done) {
                                     return result;
                                 } else {
-                                    let tempObject = deliveryTask(callback, { binary: result.value, args }, 'doing');
+                                    let doingDone = result.done;
+                                    let tempObject = deliveryTask(callback, { doingDone, binary: result.value, args }, 'doing');
                                     if (tempObject && tempObject.binary) {
                                         result.value = tempObject.binary;
                                     }
