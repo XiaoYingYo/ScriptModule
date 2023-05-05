@@ -137,6 +137,7 @@
                                 let newXhr = new Proxy(xhr, {
                                     get(target, key) {
                                         if (key === 'responseText') {
+                                            debugger;
                                             return newObject.text;
                                         }
                                         return target[key];
