@@ -117,11 +117,11 @@
                 let url = '';
                 xhr.open = function () {
                     url = arguments[1];
-                    return originalOpen.apply(xhr, arguments);
+                    return originalOpen.apply(tempXhr, arguments);
                 };
                 xhr.send = function () {
                     let o = function (args) {
-                        return originalSend.apply(xhr, args);
+                        return originalSend.apply(tempXhr, args);
                     };
                     let args = arguments;
                     let U = xhr.responseURL == '' ? url : xhr.responseURL;
@@ -140,7 +140,7 @@
                     if (newObject && newObject.args) {
                         args = newObject.args;
                     }
-                    const onReadyStateChangeOriginal = xhr.onreadystatechange;
+                    const onReadyStateChangeOriginal = tempXhr.onreadystatechange;
                     xhr.onreadystatechange = function () {
                         if (xhr.readyState === 4 && xhr.status === 200) {
                             let text = xhr.responseText;
@@ -149,7 +149,7 @@
                                 newText = newObject.text;
                             }
                         }
-                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
+                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(tempXhr, args);
                     };
                     return o(args);
                 };
