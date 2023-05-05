@@ -134,9 +134,15 @@
                             let newObject = deliveryTask(callback, { text, args }, 'done');
                             if (newObject && newObject.text) {
                                 xhr.responseText = newObject.text;
-                                if (xhr.responseText !== newObject.text) {
-                                    debugger;
-                                }
+                                let newXhr = new Proxy(xhr, {
+                                    get(target, key) {
+                                        if (key === 'responseText') {
+                                            return newObject.text;
+                                        }
+                                        return target[key];
+                                    }
+                                });
+                                return onReadyStateChangeOriginal.apply(newXhr, args);
                             }
                         }
                         onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
