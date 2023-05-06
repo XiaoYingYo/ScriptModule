@@ -1,10 +1,3 @@
-// ==UserScript==
-// @name         ajaxHookerLatest
-// @author       cxxjackie
-// @version      1.3.0-beta.1
-// @supportURL   https://bbs.tampermonkey.net.cn/thread-3284-1-1.html
-// ==/UserScript==
-
 var ajaxHooker = function() {
     const win = window.unsafeWindow || document.defaultView || window;
     const toString = Object.prototype.toString;
