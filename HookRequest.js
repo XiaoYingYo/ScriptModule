@@ -96,65 +96,59 @@
     }
 
     function hookXhr() {
-        const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
-            construct(target, args) {
-                let xhr = new target(...args);
-                let originalOpen = xhr.open;
-                let originalSend = xhr.send;
-                let url = '';
-                xhr.open = function () {
-                    url = arguments[1];
-                    return originalOpen.apply(xhr, arguments);
-                };
-                xhr.send = function () {
-                    let o = function (args) {
-                        return originalSend.apply(xhr, args);
-                    };
-                    let args = arguments;
-                    let U = xhr.responseURL == '' ? url : xhr.responseURL;
-                    if (U.indexOf('http') == -1) {
-                        if (U[0] !== '/') {
-                            let pathname = new URL(location.href).pathname;
-                            U = pathname + U;
-                        }
-                        U = location.origin + U;
-                    }
-                    let pathname = new URL(U).pathname;
-                    let callback = XhrMapList.get(pathname);
-                    if (callback == null) return o(args);
-                    if (callback.length === 0) return o(args);
-                    let newObject = deliveryTask(callback, { args }, 'preRequest');
-                    if (newObject && newObject.args) {
-                        args = newObject.args;
-                    }
-                    const onReadyStateChangeOriginal = xhr.onreadystatechange;
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === 4 && xhr.status === 200) {
-                            let text = xhr.responseText;
-                            let newObject = deliveryTask(callback, { text, args }, 'done');
-                            if (newObject && newObject.text) {
-                                xhr.responseText = newObject.text;
-                                if (xhr.responseText !== newObject.text) {
-                                    debugger;
-                                }
-                            }
-                        }
-                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
-                    };
-                    return o(args);
-                };
-                return xhr;
-            }
-        });
         globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
-        // contextWindow.XMLHttpRequest = XHRProxy;
+        const RealXhr = contextWindow.XMLHttpRequest;
+        class NewXhr extends RealXhr {
+            send() {
+                fetch(this._url, {
+                    method: this._method,
+                    headers: this._headers,
+                    body: this._body,
+                    credentials: this._withCredentials ? 'include' : 'omit'
+                }).then((response) => {
+                    this.status = response.status;
+                    this.statusText = response.statusText;
+                    this.response = response.body;
+                    this.readyState = 4;
+                    this.dispatchEvent(new Event('readystatechange'));
+                    this.dispatchEvent(new Event('load'));
+                    this.dispatchEvent(new Event('loadend'));
+                });
+            }
+        }
+        contextWindow.XMLHttpRequest = NewXhr;
+        function newXhr() {
+            const xhr = new RealXhr();
+            xhr._open = xhr.open;
+            xhr._send = xhr.send;
+            xhr.open = function (method, url, async = true) {
+                this._method = method;
+                this._url = url;
+                this._async = async;
+                this._headers = {};
+                this._withCredentials = false;
+                this._readyState = 0;
+                this._responseType = '';
+            };
+            xhr.setRequestHeader = function (name, value) {
+                this._headers[name] = value;
+            };
+            xhr.send = function (body) {
+                this._body = body;
+                this._send();
+            };
+
+            return xhr;
+        }
+        return newXhr;
     }
 
     (async () => {
-        hookFetch();
-    })();
-    (async () => {
         hookXhr();
+    })();
+
+    (async () => {
+        hookFetch();
     })();
 
     contextWindow['__hookRequest__'] = {
