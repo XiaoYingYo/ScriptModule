@@ -147,7 +147,7 @@
             }
         });
         globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
-        contextWindow.XMLHttpRequest = XHRProxy;
+        // contextWindow.XMLHttpRequest = XHRProxy;
     }
 
     (async () => {
