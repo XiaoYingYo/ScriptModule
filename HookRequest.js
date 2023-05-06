@@ -99,17 +99,18 @@
 
     function hookXhr() {
         // 保存原生 XMLHttpRequest 对象的 open 方法和 send 方法
-        const originalOpen = contextWindow.XMLHttpRequest.prototype.open;
-        const originalSend = contextWindow.XMLHttpRequest.prototype.send;
+        const originalOpen = XMLHttpRequest.prototype.open;
+        const originalSend = XMLHttpRequest.prototype.send;
 
         // 修改 XMLHttpRequest 对象的 open 方法
-        contextWindow.XMLHttpRequest.prototype.open = function (method, url) {
+        XMLHttpRequest.prototype.open = function (method, url) {
             this._url = url;
+            this._responseType = null;
             originalOpen.apply(this, arguments);
         };
 
         // 修改 XMLHttpRequest 对象的 send 方法
-        contextWindow.XMLHttpRequest.prototype.send = function () {
+        XMLHttpRequest.prototype.send = function () {
             const self = this;
 
             // 保存原生 XMLHttpRequest 对象的 onreadystatechange 方法
@@ -119,8 +120,7 @@
             this.onreadystatechange = function () {
                 if (self.readyState === 4 && self.status === 200) {
                     // 修改 responseText
-                    const modifiedResponseText = '1' + self.responseText;
-                    self.responseType = 'text';
+                    const modifiedResponseText = 'Modified ' + self.responseText;
                     self.responseText = modifiedResponseText;
                 }
 
@@ -130,8 +130,18 @@
                 }
             };
 
+            // 设置 responseType 属性
+            if (this._responseType) {
+                this.responseType = this._responseType;
+            }
+
             // 调用原生 XMLHttpRequest 对象的 send 方法
             originalSend.apply(this, arguments);
+        };
+
+        // 新增设置 responseType 的方法
+        XMLHttpRequest.prototype.setResponseType = function (responseType) {
+            this._responseType = responseType;
         };
     }
 
