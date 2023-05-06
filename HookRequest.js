@@ -101,8 +101,8 @@
         const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
                 let xhr = new target(...args);
-                let originalOpen = xhr.open;
-                let originalSend = xhr.send;
+                const originalOpen = xhr.open;
+                const originalSend = xhr.send;
                 let url = '';
                 xhr.open = function () {
                     url = arguments[1];
