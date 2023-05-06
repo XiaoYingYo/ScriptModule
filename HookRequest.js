@@ -136,15 +136,19 @@
                                 let newObject = deliveryTask(callback, { text, args }, 'done');
                                 if (newObject && newObject.text) {
                                     xhr.responseText = newObject.text;
-                                    if (xhr.responseText !== newObject.text) {
-                                        debugger;
-                                    }
+                                    Object.defineProperty(xhr, 'response', {
+                                        get: function () {
+                                            return newObject.text;
+                                        },
+                                        writable: true,
+                                        value: newObject.text
+                                    });
                                 }
                             }
-                            onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, arguments);
+                            onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
                         };
                     }
-                    return originalSend.apply(xhr, arguments);
+                    return originalSend.apply(xhr, args);
                 };
                 return xhr;
             }
