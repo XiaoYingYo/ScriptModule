@@ -141,7 +141,7 @@
                                     }
                                 }
                             }
-                            onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
+                            onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, arguments);
                         };
                     }
                     return originalSend.apply(xhr, arguments);
