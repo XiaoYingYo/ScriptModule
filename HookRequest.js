@@ -5,8 +5,7 @@
     }
     var globalVariable = new Map();
     var FetchMapList = new Map();
-    var XhrMapList = new Map();
-
+    
     function deliveryTask(callbackList, _object, period) {
         let newObject = _object;
         for (let i = 0; i < callbackList.length; i++) {
@@ -95,69 +94,7 @@
         };
     }
 
-    function hookXhr() {
-        const oldXHR = contextWindow.XMLHttpRequest;
-        globalVariable.set('XMLHttpRequest', oldXHR);
-        const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
-            construct(target, args) {
-                let xhr = new target(...args);
-                const originalOpen = xhr.open;
-                const originalSend = xhr.send;
-                let url = '';
-                xhr.open = function () {
-                    url = arguments[1];
-                    return originalOpen.apply(xhr, arguments);
-                };
-                xhr.send = function () {
-                    let args = arguments;
-                    let U = xhr.responseURL == '' ? url : xhr.responseURL;
-                    if (U.indexOf('http') == -1) {
-                        if (U[0] !== '/') {
-                            let pathname = new URL(location.href).pathname;
-                            U = pathname + U;
-                        }
-                        U = location.origin + U;
-                    }
-                    let pathname = new URL(U).pathname;
-                    let callback = XhrMapList.get(pathname);
-                    let skip = false;
-                    if (callback == null || callback.length === 0) {
-                        skip = true;
-                    }
-                    if (!skip) {
-                        let newObject = deliveryTask(callback, { args }, 'preRequest');
-                        if (newObject && newObject.args) {
-                            args = newObject.args;
-                        }
-                        const onReadyStateChangeOriginal = xhr.onreadystatechange;
-                        xhr.onreadystatechange = function () {
-                            if (xhr.readyState === 4 && xhr.status === 200) {
-                                let text = xhr.responseText;
-                                let newObject = deliveryTask(callback, { text, args }, 'done');
-                                if (newObject && newObject.text) {
-                                    xhr.responseText = newObject.text;
-                                    Object.defineProperty(xhr, 'response', {
-                                        get: function () {
-                                            return newObject.text;
-                                        },
-                                        writable: true,
-                                        value: newObject.text
-                                    });
-                                }
-                            }
-                            onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
-                        };
-                    }
-                    return originalSend.apply(xhr, args);
-                };
-                return xhr;
-            }
-        });
-        contextWindow.XMLHttpRequest = XHRProxy;
-    }
-
     hookFetch();
-    hookXhr();
 
     contextWindow['__hookRequest__'] = {
         FetchCallback: {
@@ -170,25 +107,6 @@
             del: (pathname, index) => {
                 try {
                     let list = FetchMapList.get(pathname);
-                    if (list == null) return false;
-                    list.splice(index - 1, 1);
-                } catch (e) {
-                    new Error(e);
-                    return false;
-                }
-                return true;
-            }
-        },
-        XhrCallback: {
-            add: (pathname, callback) => {
-                let list = XhrMapList.get(pathname) || (XhrMapList.set(pathname, []), XhrMapList.get(pathname));
-                list.push(callback);
-                let index = list.length;
-                return index;
-            },
-            del: (pathname, index) => {
-                try {
-                    let list = XhrMapList.get(pathname);
                     if (list == null) return false;
                     list.splice(index - 1, 1);
                 } catch (e) {
