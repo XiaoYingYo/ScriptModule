@@ -146,11 +146,11 @@
     }
 
     (async () => {
-        hookXhr();
+        hookFetch();
     })();
 
     (async () => {
-        hookFetch();
+        hookXhr();
     })();
 
     contextWindow['__hookRequest__'] = {
