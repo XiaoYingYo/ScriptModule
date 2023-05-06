@@ -144,7 +144,7 @@
                             onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
                         };
                     }
-                    return originalSend.apply(xhr, args);
+                    return originalSend.apply(xhr, arguments);
                 };
                 return xhr;
             }
