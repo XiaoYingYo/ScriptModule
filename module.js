@@ -62,7 +62,6 @@ class global_module {
                         base = baseElement;
                     }
                 }
-
                 if (!base) {
                     resolve(null);
                     return;
@@ -169,8 +168,10 @@ class global_module {
             });
     }
 
-    static GetUrlParm(name) {
-        let href = window.location.href;
+    static GetUrlParm(href = null, name) {
+        if (href == null) {
+            href = location.href;
+        }
         let parms = href.substring(href.indexOf('?') + 1);
         let reg = new RegExp('(^|&)' + name + '=([^&]*)(&|$)');
         let r = parms.match(reg);
