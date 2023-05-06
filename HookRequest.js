@@ -115,7 +115,7 @@
                     headers: {},
                     body: arguments[0] || null
                 };
-                const fetchPromise = fetch(url, options);
+                const fetchPromise = globalVariable.get('Fetch')(url, options);
                 const responsePromise = fetchPromise.then((response) => {
                     return response.text().then((text) => {
                         this.responseText = text;
