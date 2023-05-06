@@ -109,9 +109,6 @@
                     return originalOpen.apply(xhr, arguments);
                 };
                 xhr.send = function () {
-                    let o = function (args) {
-                        return originalSend.apply(xhr, args);
-                    };
                     let args = arguments;
                     let U = xhr.responseURL == '' ? url : xhr.responseURL;
                     if (U.indexOf('http') == -1) {
@@ -123,27 +120,34 @@
                     }
                     let pathname = new URL(U).pathname;
                     let callback = XhrMapList.get(pathname);
-                    if (callback == null) return o(args);
-                    if (callback.length === 0) return o(args);
-                    let newObject = deliveryTask(callback, { args }, 'preRequest');
-                    if (newObject && newObject.args) {
-                        args = newObject.args;
+                    let skip = false;
+                    if (callback == null) {
+                        skip = true;
                     }
-                    const onReadyStateChangeOriginal = xhr.onreadystatechange;
-                    xhr.onreadystatechange = function () {
-                        if (xhr.readyState === 4 && xhr.status === 200) {
-                            let text = xhr.responseText;
-                            let newObject = deliveryTask(callback, { text, args }, 'done');
-                            if (newObject && newObject.text) {
-                                xhr.responseText = newObject.text;
-                                if (xhr.responseText !== newObject.text) {
-                                    debugger;
+                    if (callback.length === 0) {
+                        skip = true;
+                    }
+                    if (!skip) {
+                        let newObject = deliveryTask(callback, { args }, 'preRequest');
+                        if (newObject && newObject.args) {
+                            args = newObject.args;
+                        }
+                        const onReadyStateChangeOriginal = xhr.onreadystatechange;
+                        xhr.onreadystatechange = function () {
+                            if (xhr.readyState === 4 && xhr.status === 200) {
+                                let text = xhr.responseText;
+                                let newObject = deliveryTask(callback, { text, args }, 'done');
+                                if (newObject && newObject.text) {
+                                    xhr.responseText = newObject.text;
+                                    if (xhr.responseText !== newObject.text) {
+                                        debugger;
+                                    }
                                 }
                             }
-                        }
-                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
-                    };
-                    return o(args);
+                            onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
+                        };
+                    }
+                    return originalSend.apply(xhr, args);
                 };
                 return xhr;
             }
