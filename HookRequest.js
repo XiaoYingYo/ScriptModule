@@ -96,6 +96,8 @@
     }
 
     function hookXhr() {
+        const oldXHR = contextWindow.XMLHttpRequest;
+        globalVariable.set('XMLHttpRequest', oldXHR);
         const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
             construct(target, args) {
                 let xhr = new target(...args);
@@ -146,7 +148,6 @@
                 return xhr;
             }
         });
-        globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
         contextWindow.XMLHttpRequest = XHRProxy;
     }
 
