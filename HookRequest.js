@@ -119,6 +119,11 @@
             // 修改 XMLHttpRequest 对象的 onreadystatechange 方法
             this.onreadystatechange = function () {
                 if (self.readyState === 4 && self.status === 200) {
+                    // 检查 responseType 的值，如果不是 '' 或 'text'，则将其设置回 'text'
+                    if (self.responseType !== '' && self.responseType !== 'text') {
+                        self.responseType = 'text';
+                    }
+
                     // 修改 responseText
                     const modifiedResponseText = 'Modified ' + self.responseText;
                     self.responseText = modifiedResponseText;
