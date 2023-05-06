@@ -95,63 +95,67 @@
         };
     }
 
-    // globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
-
     function hookXhr() {
-        // 保存原生 XMLHttpRequest 对象的 open 方法和 send 方法
-        const originalOpen = contextWindow.XMLHttpRequest.prototype.open;
-        const originalSend = contextWindow.XMLHttpRequest.prototype.send;
-
-        // 修改 XMLHttpRequest 对象的 open 方法
-        contextWindow.XMLHttpRequest.prototype.open = function (method, url) {
-            this._url = url;
-            this._responseType = null;
-            originalOpen.apply(this, arguments);
-        };
-
-        // 修改 XMLHttpRequest 对象的 send 方法
-        contextWindow.XMLHttpRequest.prototype.send = function () {
-            const self = this;
-
-            // 保存原生 XMLHttpRequest 对象的 onreadystatechange 方法
-            const originalReadyStateChange = this.onreadystatechange;
-
-            // 修改 XMLHttpRequest 对象的 onreadystatechange 方法
-            this.onreadystatechange = function () {
-                if (self.readyState === 4 && self.status === 200) {
-                    // 检查 responseType 的值，如果不是 '' 或 'text'，则将其设置回 'text'
-                    if (self.responseType !== '' && self.responseType !== 'text') {
-                        self.responseType = 'text';
+        const XHRProxy = new Proxy(contextWindow.XMLHttpRequest, {
+            construct(target, args) {
+                let xhr = new target(...args);
+                let originalOpen = xhr.open;
+                let originalSend = xhr.send;
+                let url = '';
+                xhr.open = function () {
+                    url = arguments[1];
+                    return originalOpen.apply(xhr, arguments);
+                };
+                xhr.send = function () {
+                    let o = function (args) {
+                        return originalSend.apply(xhr, args);
+                    };
+                    let args = arguments;
+                    let U = xhr.responseURL == '' ? url : xhr.responseURL;
+                    if (U.indexOf('http') == -1) {
+                        if (U[0] !== '/') {
+                            let pathname = new URL(location.href).pathname;
+                            U = pathname + U;
+                        }
+                        U = location.origin + U;
                     }
-
-                    // 修改 responseText
-                    const modifiedResponseText = 'Modified ' + self.responseText;
-                    self.responseText = modifiedResponseText;
-                }
-
-                // 调用原生 XMLHttpRequest 对象的 onreadystatechange 方法
-                if (typeof originalReadyStateChange === 'function') {
-                    originalReadyStateChange.apply(self, arguments);
-                }
-            };
-
-            // 设置 responseType 属性
-            if (this._responseType) {
-                this.responseType = this._responseType;
+                    let pathname = new URL(U).pathname;
+                    let callback = XhrMapList.get(pathname);
+                    if (callback == null) return o(args);
+                    if (callback.length === 0) return o(args);
+                    let newObject = deliveryTask(callback, { args }, 'preRequest');
+                    if (newObject && newObject.args) {
+                        args = newObject.args;
+                    }
+                    const onReadyStateChangeOriginal = xhr.onreadystatechange;
+                    xhr.onreadystatechange = function () {
+                        if (xhr.readyState === 4 && xhr.status === 200) {
+                            let text = xhr.responseText;
+                            let newObject = deliveryTask(callback, { text, args }, 'done');
+                            if (newObject && newObject.text) {
+                                xhr.responseText = newObject.text;
+                                if (xhr.responseText !== newObject.text) {
+                                    debugger;
+                                }
+                            }
+                        }
+                        onReadyStateChangeOriginal && onReadyStateChangeOriginal.apply(xhr, args);
+                    };
+                    return o(args);
+                };
+                return xhr;
             }
-
-            // 调用原生 XMLHttpRequest 对象的 send 方法
-            originalSend.apply(this, arguments);
-        };
-
-        // 新增设置 responseType 的方法
-        contextWindow.XMLHttpRequest.prototype.setResponseType = function (responseType) {
-            this._responseType = responseType;
-        };
+        });
+        globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
+        contextWindow.XMLHttpRequest = XHRProxy;
     }
 
-    hookFetch();
-    hookXhr();
+    (async () => {
+        hookFetch();
+    })();
+    (async () => {
+        hookXhr();
+    })();
 
     contextWindow['__hookRequest__'] = {
         FetchCallback: {
