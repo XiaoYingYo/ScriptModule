@@ -95,54 +95,41 @@
         };
     }
 
+    // globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
+
     function hookXhr() {
         globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
         const RealXhr = contextWindow.XMLHttpRequest;
-        class NewXhr extends RealXhr {
-            send() {
-                globalVariable
-                    .get('Fetch')(this._url, {
-                        method: this._method,
-                        headers: this._headers,
-                        body: this._body,
-                        credentials: this._withCredentials ? 'include' : 'omit'
-                    })
-                    .then((response) => {
-                        this.status = response.status;
-                        this.statusText = response.statusText;
-                        this.response = response.body;
-                        this.readyState = 4;
-                        this.dispatchEvent(new Event('readystatechange'));
-                        this.dispatchEvent(new Event('load'));
-                        this.dispatchEvent(new Event('loadend'));
-                    });
-            }
-        }
-        contextWindow.XMLHttpRequest = NewXhr;
-        function newXhr() {
+        function NewXhr() {
             const xhr = new RealXhr();
-            xhr._open = xhr.open;
-            xhr._send = xhr.send;
-            xhr.open = function (method, url, async = true) {
-                this._method = method;
-                this._url = url;
-                this._async = async;
-                this._headers = {};
-                this._withCredentials = false;
-                this._readyState = 0;
-                this._responseType = '';
+            const oldOpen = xhr.open;
+            xhr.open = function () {
+                this.method = arguments[0];
+                this.url = arguments[1];
+                oldOpen.apply(xhr, arguments);
             };
-            xhr.setRequestHeader = function (name, value) {
-                this._headers[name] = value;
+            xhr.send = function () {
+                const { method, url } = this;
+                const options = {
+                    method,
+                    headers: {},
+                    body: arguments[0] || null
+                };
+                const fetchPromise = fetch(url, options);
+                const responsePromise = fetchPromise.then((response) => {
+                    return response.text().then((text) => {
+                        this.responseText = text;
+                        this.status = response.status;
+                        this.readyState = 4;
+                        const event = new Event('readystatechange');
+                        this.dispatchEvent(event);
+                    });
+                });
+                return responsePromise;
             };
-            xhr.send = function (body) {
-                this._body = body;
-                this._send();
-            };
-
             return xhr;
         }
-        return newXhr;
+        contextWindow.XMLHttpRequest = NewXhr;
     }
 
     (async () => {
