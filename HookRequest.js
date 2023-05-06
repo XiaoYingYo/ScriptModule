@@ -121,10 +121,7 @@
                     let pathname = new URL(U).pathname;
                     let callback = XhrMapList.get(pathname);
                     let skip = false;
-                    if (callback == null) {
-                        skip = true;
-                    }
-                    if (callback.length === 0) {
+                    if (callback == null || callback.length === 0) {
                         skip = true;
                     }
                     if (!skip) {
