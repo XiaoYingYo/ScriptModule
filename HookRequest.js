@@ -100,20 +100,22 @@
         const RealXhr = contextWindow.XMLHttpRequest;
         class NewXhr extends RealXhr {
             send() {
-                fetch(this._url, {
-                    method: this._method,
-                    headers: this._headers,
-                    body: this._body,
-                    credentials: this._withCredentials ? 'include' : 'omit'
-                }).then((response) => {
-                    this.status = response.status;
-                    this.statusText = response.statusText;
-                    this.response = response.body;
-                    this.readyState = 4;
-                    this.dispatchEvent(new Event('readystatechange'));
-                    this.dispatchEvent(new Event('load'));
-                    this.dispatchEvent(new Event('loadend'));
-                });
+                globalVariable
+                    .get('Fetch')(this._url, {
+                        method: this._method,
+                        headers: this._headers,
+                        body: this._body,
+                        credentials: this._withCredentials ? 'include' : 'omit'
+                    })
+                    .then((response) => {
+                        this.status = response.status;
+                        this.statusText = response.statusText;
+                        this.response = response.body;
+                        this.readyState = 4;
+                        this.dispatchEvent(new Event('readystatechange'));
+                        this.dispatchEvent(new Event('load'));
+                        this.dispatchEvent(new Event('loadend'));
+                    });
             }
         }
         contextWindow.XMLHttpRequest = NewXhr;
