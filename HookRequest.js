@@ -98,38 +98,41 @@
     // globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
 
     function hookXhr() {
-        globalVariable.set('XMLHttpRequest', contextWindow.XMLHttpRequest);
-        const RealXhr = contextWindow.XMLHttpRequest;
-        function NewXhr() {
-            const xhr = new RealXhr();
-            const oldOpen = xhr.open;
-            xhr.open = function () {
-                this.method = arguments[0];
-                this.url = arguments[1];
-                oldOpen.apply(xhr, arguments);
+        // 保存原生 XMLHttpRequest 对象的 open 方法和 send 方法
+        const originalOpen = contextWindow.XMLHttpRequest.prototype.open;
+        const originalSend = contextWindow.XMLHttpRequest.prototype.send;
+
+        // 修改 XMLHttpRequest 对象的 open 方法
+        contextWindow.XMLHttpRequest.prototype.open = function (method, url) {
+            this._url = url;
+            originalOpen.apply(this, arguments);
+        };
+
+        // 修改 XMLHttpRequest 对象的 send 方法
+        contextWindow.XMLHttpRequest.prototype.send = function () {
+            const self = this;
+
+            // 保存原生 XMLHttpRequest 对象的 onreadystatechange 方法
+            const originalReadyStateChange = this.onreadystatechange;
+
+            // 修改 XMLHttpRequest 对象的 onreadystatechange 方法
+            this.onreadystatechange = function () {
+                if (self.readyState === 4 && self.status === 200) {
+                    // 修改 responseText
+                    const modifiedResponseText = '1' + self.responseText;
+                    self.responseType = 'text';
+                    self.responseText = modifiedResponseText;
+                }
+
+                // 调用原生 XMLHttpRequest 对象的 onreadystatechange 方法
+                if (typeof originalReadyStateChange === 'function') {
+                    originalReadyStateChange.apply(self, arguments);
+                }
             };
-            xhr.send = function () {
-                const { method, url } = this;
-                const options = {
-                    method,
-                    headers: {},
-                    body: arguments[0] || null
-                };
-                const fetchPromise = globalVariable.get('Fetch')(url, options);
-                const responsePromise = fetchPromise.then((response) => {
-                    return response.text().then((text) => {
-                        this.responseText = text;
-                        this.status = response.status;
-                        this.readyState = 4;
-                        const event = new Event('readystatechange');
-                        this.dispatchEvent(event);
-                    });
-                });
-                return responsePromise;
-            };
-            return xhr;
-        }
-        contextWindow.XMLHttpRequest = NewXhr;
+
+            // 调用原生 XMLHttpRequest 对象的 send 方法
+            originalSend.apply(this, arguments);
+        };
     }
 
     hookFetch();
