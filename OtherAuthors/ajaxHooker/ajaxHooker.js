@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         ajaxHooker
+// @name         ajaxHookerLatest
 // @author       cxxjackie
 // @version      1.3.0-beta.1
 // @supportURL   https://bbs.tampermonkey.net.cn/thread-3284-1-1.html
