@@ -152,12 +152,8 @@
         contextWindow.XMLHttpRequest = XHRProxy;
     }
 
-    (async () => {
-        hookFetch();
-    })();
-    (async () => {
-        hookXhr();
-    })();
+    hookFetch();
+    hookXhr();
 
     contextWindow['__hookRequest__'] = {
         FetchCallback: {
