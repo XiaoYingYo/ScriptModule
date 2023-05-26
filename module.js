@@ -132,6 +132,64 @@ class global_module {
         return html.replace(/<[^>]+>/g, '');
     }
 
+    static async Http(o) {
+        return new Promise((resolve) => {
+            if (typeof o === 'undefined' || typeof o !== 'object' || typeof o.url === 'undefined') {
+                resolve(null);
+            }
+            if (typeof o.method === 'undefined') {
+                o.method = 'GET';
+            }
+            if (typeof o.headers === 'undefined') {
+                o.headers = {};
+            }
+            if (typeof o.data === 'undefined') {
+                o.data = '';
+            }
+            if (typeof o.timeout === 'undefined') {
+                o.timeout = 10000;
+            }
+            let res = { code: 0, ret: null };
+            if (!GM_xmlhttpRequest) {
+                let xhr = new XMLHttpRequest();
+                xhr.open(o.method, o.url, true);
+                for (let i in o.headers) {
+                    xhr.setRequestHeader(i, o.headers[i]);
+                }
+                xhr.timeout = o.timeout;
+                xhr.onload = function () {
+                    res.code = xhr.status;
+                    res.ret = xhr.response;
+                    resolve(res);
+                };
+                xhr.onerror = function (err) {
+                    res.code = -1;
+                    res.ret = err;
+                    resolve(res);
+                };
+                xhr.send(o.data);
+            } else {
+                GM_xmlhttpRequest({
+                    method: o.method,
+                    url: o.url,
+                    headers: o.headers,
+                    data: o.data,
+                    timeout: o.timeout,
+                    onload: function (response) {
+                        res.code = response.status;
+                        res.ret = response;
+                        resolve(res);
+                    },
+                    onerror: function (err) {
+                        res.code = -1;
+                        res.ret = err;
+                        resolve(res);
+                    }
+                });
+            }
+        });
+    }
+
     static async Ajax_Xhr(url, Way, data) {
         return new Promise(function (resolve) {
             let h = ['html', 'txt', 'json', 'xml', 'js', 'css'];
@@ -691,12 +749,86 @@ class global_module {
         }
     };
 
+    static Mail = {
+        getHost: function () {
+            return 'https://www.mohmal.com/';
+        },
+        getInboxUrl: function () {
+            return this.getHost() + 'zh/inbox';
+        },
+        getChangeUrl: function () {
+            return this.getHost() + 'zh/change';
+        },
+        getMesssageUrl: function () {
+            return this.getHost() + 'zh/message/';
+        },
+        Change: async function () {
+            return new Promise(async (resolve) => {
+                await global_module.Http({ method: 'GET', url: this.getChangeUrl() });
+                let r = global_module.Http({ method: 'GET', url: this.getInboxUrl() });
+                resolve(this.getEMail(r.ret.responseText));
+            });
+        },
+        getEMail: function (html) {
+            let emailDom = $('<div></div>').html(html).eq(0).find('[data-email]').eq(0);
+            if (!emailDom) {
+                return null;
+            }
+            if (!emailDom.text()) {
+                return null;
+            }
+            let email = emailDom.attr('data-email');
+            return email;
+        },
+        analyzeMails: async (html) => {
+            let Tasks = [];
+            let MailMsg = [];
+            let msgIds = $(html).find('tr[data-msg-id]');
+            for (let i = 0; i < msgIds.length; i++) {
+                let that = $(msgIds[i]);
+                let msgId = that.attr('data-msg-id');
+                let sender = that.find('td[class="sender"]').eq(0).find('a').text();
+                let time = that.find('td[class="time"]').eq(0).find('a').text();
+                let url = this.getMesssageUrl() + msgId;
+                let task = function () {
+                    return new Promise(async (resolve) => {
+                        let res = await Http({ method: 'GET', url: url });
+                        let msgDom = $('<div></div>').html(res.ret.responseText).eq(0);
+                        let msgDomHtml = msgDom.html();
+                        let msgDomText = msgDom.text();
+                        let obj = { msgId, time, url, res, sender, html: msgDomHtml, text: msgDomText };
+                        MailMsg.push(obj);
+                        resolve();
+                    });
+                };
+                Tasks.push(task());
+            }
+            await Promise.all(Tasks);
+            return MailMsg;
+        },
+        getMails: async function () {
+            return new Promise(async (resolve) => {
+                let res = await global_module.Http({ method: 'GET', url: this.getInboxUrl() });
+                if (res.code === -1) {
+                    let r = await this.getMail();
+                    resolve(r);
+                    return;
+                }
+                if (res.code != 200) {
+                    new Error('Failed to get the verification code, please try again later!');
+                    resolve(null);
+                    return;
+                }
+                resolve(res);
+            });
+        }
+    };
+
     static AnalogInput = {
         clickElement: function (el) {
             if (!el || (el && 'function' !== typeof el.click)) {
                 return false;
             }
-
             el.click();
             return true;
         },
