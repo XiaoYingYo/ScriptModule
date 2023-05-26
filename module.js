@@ -819,7 +819,14 @@ class global_module {
                     resolve(null);
                     return;
                 }
-                resolve(res);
+                let html = $('<div></div>').html(res.ret.responseText);
+                let NoMessages = html.find('tr.no-messages').eq(0);
+                if (NoMessages.length !== 0) {
+                    resolve([]);
+                    return;
+                }
+                let r = this.analyzeMails(html);
+                resolve(r);
             });
         }
     };
