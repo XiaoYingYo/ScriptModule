@@ -780,31 +780,34 @@ class global_module {
             let email = emailDom.attr('data-email');
             return email;
         },
-        analyzeMails: async (html) => {
-            let Tasks = [];
-            let MailMsg = [];
-            let msgIds = $(html).find('tr[data-msg-id]');
-            for (let i = 0; i < msgIds.length; i++) {
-                let that = $(msgIds[i]);
-                let msgId = that.attr('data-msg-id');
-                let sender = that.find('td[class="sender"]').eq(0).find('a').text();
-                let time = that.find('td[class="time"]').eq(0).find('a').text();
-                let url = this.getMesssageUrl() + msgId;
-                let task = function () {
-                    return new Promise(async (resolve) => {
-                        let res = await Http({ method: 'GET', url: url });
-                        let msgDom = $('<div></div>').html(res.ret.responseText).eq(0);
-                        let msgDomHtml = msgDom.html();
-                        let msgDomText = msgDom.text();
-                        let obj = { msgId, time, url, res, sender, html: msgDomHtml, text: msgDomText };
-                        MailMsg.push(obj);
-                        resolve();
-                    });
-                };
-                Tasks.push(task());
-            }
-            await Promise.all(Tasks);
-            return MailMsg;
+        analyzeMails: function (html) {
+            let _that = this;
+            return new Promise(async (resolve) => {
+                let Tasks = [];
+                let MailMsg = [];
+                let msgIds = $(html).find('tr[data-msg-id]');
+                for (let i = 0; i < msgIds.length; i++) {
+                    let that = $(msgIds[i]);
+                    let msgId = that.attr('data-msg-id');
+                    let sender = that.find('td[class="sender"]').eq(0).find('a').text();
+                    let time = that.find('td[class="time"]').eq(0).find('a').text();
+                    let url = _that.getMesssageUrl() + msgId;
+                    let task = function () {
+                        return new Promise(async (resolve) => {
+                            let res = await Http({ method: 'GET', url: url });
+                            let msgDom = $('<div></div>').html(res.ret.responseText).eq(0);
+                            let msgDomHtml = msgDom.html();
+                            let msgDomText = msgDom.text();
+                            let obj = { msgId, time, url, res, sender, html: msgDomHtml, text: msgDomText };
+                            MailMsg.push(obj);
+                            resolve();
+                        });
+                    };
+                    Tasks.push(task());
+                }
+                await Promise.all(Tasks);
+                resolve(MailMsg);
+            });
         },
         getMails: async function () {
             return new Promise(async (resolve) => {
@@ -825,7 +828,7 @@ class global_module {
                     resolve([]);
                     return;
                 }
-                let r = this.analyzeMails(html);
+                let r = await this.analyzeMails(html);
                 resolve(r);
             });
         }
