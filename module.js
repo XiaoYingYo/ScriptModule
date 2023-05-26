@@ -765,7 +765,7 @@ class global_module {
         Change: async function () {
             return new Promise(async (resolve) => {
                 await global_module.Http({ method: 'GET', url: this.getChangeUrl() });
-                let r = global_module.Http({ method: 'GET', url: this.getInboxUrl() });
+                let r = await global_module.Http({ method: 'GET', url: this.getInboxUrl() });
                 resolve(this.getEMail(r.ret.responseText));
             });
         },
