@@ -794,7 +794,7 @@ class global_module {
                     let url = _that.getMesssageUrl() + msgId;
                     let task = function () {
                         return new Promise(async (resolve) => {
-                            let res = await Http({ method: 'GET', url: url });
+                            let res = await global_module.Http({ method: 'GET', url: url });
                             let msgDom = $('<div></div>').html(res.ret.responseText).eq(0);
                             let msgDomHtml = msgDom.html();
                             let msgDomText = msgDom.text();
