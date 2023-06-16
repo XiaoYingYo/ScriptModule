@@ -226,6 +226,12 @@ class global_module {
             });
     }
 
+    static decodeHtmlEntities() {
+        var tempElement = document.createElement('div');
+        tempElement.innerHTML = htmlString;
+        return tempElement.textContent;
+    }
+
     static GetUrlParm(href = null, name) {
         if (href == null) {
             href = location.href;
