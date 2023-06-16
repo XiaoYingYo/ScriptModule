@@ -226,7 +226,7 @@ class global_module {
             });
     }
 
-    static decodeHtmlEntities() {
+    static decodeHtmlEntities(htmlString = '') {
         var tempElement = document.createElement('div');
         tempElement.innerHTML = htmlString;
         return tempElement.textContent;
