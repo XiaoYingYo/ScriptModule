@@ -245,6 +245,28 @@ class global_module {
         return null;
     }
 
+    static downloadSvgAsPng(svg, filename) {
+        var canvas = document.createElement('canvas');
+        var context = canvas.getContext('2d');
+        var svgRect = svg.getBoundingClientRect();
+        var width = svgRect.width;
+        var height = svgRect.height;
+        canvas.width = width;
+        canvas.height = height;
+        var image = new Image();
+        var svgData = new XMLSerializer().serializeToString(svg);
+        var svgUrl = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svgData);
+        image.onload = function () {
+            context.drawImage(image, 0, 0, width, height);
+            var link = document.createElement('a');
+            link.href = canvas.toDataURL('image/png');
+            link.download = filename;
+            link.click();
+            canvas = null;
+        };
+        image.src = svgUrl;
+    }
+
     static SetUrlParm(href, name, value) {
         if (href == null || href == '') {
             href = location.href;
