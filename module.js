@@ -439,25 +439,34 @@ class global_module {
         return header;
     }
 
-    static MoveElement(obj, GoToX) {
-        if (obj == null) return;
-        if (obj.length > 0) obj = obj[0];
-        let event = document.createEvent('MouseEvents');
-        event.initMouseEvent('mousedown', true, true, window, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
-        obj.dispatchEvent(event);
-        let x = 0;
-        let timer = setInterval(function () {
-            x += 5;
-            let event = document.createEvent('MouseEvents');
-            event.initMouseEvent('mousemove', true, true, window, 0, 0, 0, x, 0, false, false, false, false, 0, null);
-            obj.dispatchEvent(event);
-            if (x >= GoToX) {
-                clearInterval(timer);
-                let event = document.createEvent('MouseEvents');
-                event.initMouseEvent('mouseup', true, true, window, 0, 0, 0, 260, 0, false, false, false, false, 0, null);
-                obj.dispatchEvent(event);
+    static MoveElement(obj, GoToX, speed = 10, scope = null) {
+        return new Promise(async (resolve) => {
+            if (obj == null) {
+                resolve(false);
+                return;
             }
-        }, 10);
+            if (obj.length > 0) obj = obj[0];
+            let event = document.createEvent('MouseEvents');
+            if (scope == null) {
+                scope = window;
+            }
+            event.initMouseEvent('mousedown', true, true, scope, 0, 0, 0, 0, 0, false, false, false, false, 0, null);
+            obj.dispatchEvent(event);
+            let x = 0;
+            let timer = setInterval(function () {
+                x += 5;
+                let event = document.createEvent('MouseEvents');
+                event.initMouseEvent('mousemove', true, true, scope, 0, 0, 0, x, 0, false, false, false, false, 0, null);
+                obj.dispatchEvent(event);
+                if (x >= GoToX) {
+                    clearInterval(timer);
+                    let event = document.createEvent('MouseEvents');
+                    event.initMouseEvent('mouseup', true, true, scope, 0, 0, 0, 260, 0, false, false, false, false, 0, null);
+                    obj.dispatchEvent(event);
+                    resolve(true);
+                }
+            }, speed);
+        });
     }
 
     static clickElement(element) {
