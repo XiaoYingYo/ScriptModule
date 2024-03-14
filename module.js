@@ -477,6 +477,27 @@ class global_module {
         return true;
     }
 
+    static simulateMouseEvent(element, eventType) {
+        var event;
+        if (eventType === 0) {
+            event = new MouseEvent('mouseover', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+        } else if (eventType === 1) {
+            event = new MouseEvent('mouseout', {
+                bubbles: true,
+                cancelable: true,
+                view: window
+            });
+        } else {
+            console.log('不支持的触发类型');
+            return;
+        }
+        element.dispatchEvent(event);
+    }
+
     static getLayerelement(layeri) {
         return $("div[id^='layui-layer" + layeri + "'][type][times='" + layeri + "']").eq(0);
     }
@@ -945,6 +966,17 @@ class global_module {
                     }
                     theEl.value = op;
                 });
+        },
+        AnalogInput2: function (inputElement, inputString) {
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+            const inputEvent = new Event('input', { bubbles: true });
+            inputElement.focus();
+            inputElement.value = '';
+            for (let i = 0; i < inputString.length; i++) {
+                const char = inputString[i];
+                nativeInputValueSetter.call(inputElement, inputElement.value + char);
+                inputElement.dispatchEvent(inputEvent);
+            }
         }
     };
 }
