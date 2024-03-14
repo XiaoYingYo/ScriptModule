@@ -487,21 +487,23 @@ class global_module {
         let eventName = '';
         switch (eventType) {
             case 0:
-                eventName = 'mouseover';
+                eventName = ['mouseover', 'mouseenter'];
                 break;
             case 1:
-                eventName = 'mouseout';
+                eventName = ['mouseout', 'mouseleave'];
                 break;
             default:
                 throw new Error('不支持的触发类型');
         }
-        element.dispatchEvent(
-            new mouseEvent(eventName, {
-                bubbles: true,
-                cancelable: true,
-                view: win
-            })
-        );
+        for (let i = 0; i < eventName.length; i++) {
+            element.dispatchEvent(
+                new MouseEvent(eventName[i], {
+                    bubbles: true,
+                    cancelable: true,
+                    view: win
+                })
+            );
+        }
     }
 
     static getLayerelement(layeri) {
