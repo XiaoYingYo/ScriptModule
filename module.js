@@ -495,12 +495,13 @@ class global_module {
             default:
                 throw new Error('不支持的触发类型');
         }
-        let event = new mouseEvent(eventName, {
-            bubbles: true,
-            cancelable: true,
-            view: win
-        });
-        element.dispatchEvent(event);
+        element.dispatchEvent(
+            new mouseEvent(eventName, {
+                bubbles: true,
+                cancelable: true,
+                view: win
+            })
+        );
     }
 
     static getLayerelement(layeri) {
