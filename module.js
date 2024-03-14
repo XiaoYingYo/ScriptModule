@@ -477,24 +477,29 @@ class global_module {
         return true;
     }
 
-    static simulateMouseEvent(element, eventType) {
-        var event;
-        if (eventType === 0) {
-            event = new MouseEvent('mouseover', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-        } else if (eventType === 1) {
-            event = new MouseEvent('mouseout', {
-                bubbles: true,
-                cancelable: true,
-                view: window
-            });
-        } else {
-            console.log('不支持的触发类型');
-            return;
+    static simulateMouseEvent(mouseEvent, win, element, eventType) {
+        if (!mouseEvent) {
+            mouseEvent = MouseEvent;
         }
+        if (!win) {
+            win = window;
+        }
+        let eventName = '';
+        switch (eventType) {
+            case 0:
+                eventName = 'mouseover';
+                break;
+            case 1:
+                eventName = 'mouseout';
+                break;
+            default:
+                throw new Error('不支持的触发类型');
+        }
+        let event = new mouseEvent(eventName, {
+            bubbles: true,
+            cancelable: true,
+            view: win
+        });
         element.dispatchEvent(event);
     }
 
