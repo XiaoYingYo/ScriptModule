@@ -11,7 +11,7 @@ class global_module {
      * @param {*} baseElement  可选-基础元素 可以是字符串选择器或者元素
      * @returns
      */
-    static async waitForElement(selectors, iframe = null, callback = null, time = 100, timeout = 1000 * 30, baseElement = null, index = null, isWrapped = true) {
+    static async waitForElement(selectors, iframe = null, callback = null, time = 100, timeout = 1000 * 30, baseElement = null, index = null, isWrapped = true, startTime = null) {
         if (time == null) {
             time = 100;
         }
@@ -22,7 +22,9 @@ class global_module {
             isWrapped = true;
         }
         return new Promise(async (resolve) => {
-            let startTime = Date.now();
+            if (!startTime) {
+                startTime = Date.now();
+            }
             let iframeElement,
                 base,
                 elements = [];
@@ -113,7 +115,7 @@ class global_module {
                     return;
                 }
                 setTimeout(async () => {
-                    resolve(await global_module.waitForElement(selectors, iframe, callback, time, timeout, baseElement, index, isWrapped));
+                    resolve(await global_module.waitForElement(selectors, iframe, callback, time, timeout, baseElement, index, isWrapped, startTime));
                 }, time);
             }
         });
