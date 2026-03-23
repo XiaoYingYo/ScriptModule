@@ -471,6 +471,51 @@ class global_module {
         });
     }
 
+    static async realClick(element, win = null, options = {}) {
+        if (element == null) {
+            return false;
+        }
+        if (element.length > 0) {
+            element = element[0];
+        }
+        if (!(element instanceof Element)) {
+            return false;
+        }
+        if (win == null) {
+            win = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
+        }
+        const rect = element.getBoundingClientRect();
+        if (rect.width === 0 || rect.height === 0) {
+            return false;
+        }
+        const ratioX = typeof options.ratioX === 'number' ? options.ratioX : 0.2 + Math.random() * 0.6;
+        const ratioY = typeof options.ratioY === 'number' ? options.ratioY : 0.2 + Math.random() * 0.6;
+        const moveDelay = typeof options.moveDelay === 'number' ? options.moveDelay : 30 + Math.random() * 50;
+        const pressDelay = typeof options.pressDelay === 'number' ? options.pressDelay : 60 + Math.random() * 100;
+        const x = rect.left + rect.width * ratioX;
+        const y = rect.top + rect.height * ratioY;
+        const base = { view: win, bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, screenX: x, screenY: y };
+        const sleep = (ms) =>
+            new Promise((resolve) => {
+                setTimeout(resolve, ms);
+            });
+        element.dispatchEvent(new MouseEvent('mouseover', base));
+        element.dispatchEvent(new MouseEvent('mouseenter', base));
+        element.dispatchEvent(new MouseEvent('mousemove', base));
+        await sleep(moveDelay);
+        if (typeof PointerEvent === 'function') {
+            element.dispatchEvent(new PointerEvent('pointerdown', { ...base, pointerId: 1, pointerType: 'mouse', buttons: 1 }));
+        }
+        element.dispatchEvent(new MouseEvent('mousedown', { ...base, buttons: 1 }));
+        await sleep(pressDelay);
+        if (typeof PointerEvent === 'function') {
+            element.dispatchEvent(new PointerEvent('pointerup', { ...base, pointerId: 1, pointerType: 'mouse', buttons: 0 }));
+        }
+        element.dispatchEvent(new MouseEvent('mouseup', { ...base, buttons: 0 }));
+        element.dispatchEvent(new MouseEvent('click', { ...base, buttons: 0 }));
+        return true;
+    }
+
     static clickElement(element) {
         if (element == null) return false;
         let Event = document.createEvent('MouseEvents');
