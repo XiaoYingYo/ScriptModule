@@ -2892,20 +2892,6 @@
     var rcheckableType = /^(?:checkbox|radio)$/i;
     var rtagName = /<([a-z][^\/\0>\x20\t\r\n\f]*)/i;
     var rscriptType = /^$|^module$|\/(?:java|ecma)script/i;
-    (function () {
-        var fragment = document.createDocumentFragment(),
-            div = fragment.appendChild(document.createElement("div")),
-            input = document.createElement("input");
-        input.setAttribute("type", "radio");
-        input.setAttribute("checked", "checked");
-        input.setAttribute("name", "t");
-        div.appendChild(input);
-        support.checkClone = div.cloneNode(true).cloneNode(true).lastChild.checked;
-        div.innerHTML = "<textarea>x</textarea>";
-        support.noCloneChecked = !!div.cloneNode(true).lastChild.defaultValue;
-        div.innerHTML = "<option></option>";
-        support.option = !!div.lastChild;
-    })();
     var wrapMap = {
         thead: [1, "<table>", "</table>"],
         col: [2, "<table><colgroup>", "</colgroup></table>"],
