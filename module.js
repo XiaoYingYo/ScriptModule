@@ -471,48 +471,105 @@ class global_module {
         });
     }
 
-    static async realClick(element, win = null, options = {}) {
-        if (element == null) {
+    static async realClick(element, win = window, options = {}) {
+        if (!element) {
             return false;
         }
-        if (element.length > 0) {
-            element = element[0];
-        }
-        if (!(element instanceof Element)) {
-            return false;
-        }
-        if (win == null) {
-            win = typeof unsafeWindow !== 'undefined' ? unsafeWindow : window;
-        }
+        const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+        const now = () => (win.performance && typeof win.performance.now === 'function' ? win.performance.now() : Date.now());
+        const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+        const readNumber = (value) => (typeof value === 'number' && Number.isFinite(value) ? value : null);
+        const waitUntil = async (targetTime) => {
+            const remaining = targetTime - now();
+            if (remaining > 1) {
+                await delay(remaining);
+            }
+        };
         const rect = element.getBoundingClientRect();
-        if (rect.width === 0 || rect.height === 0) {
-            return false;
-        }
-        const ratioX = typeof options.ratioX === 'number' ? options.ratioX : 0.2 + Math.random() * 0.6;
-        const ratioY = typeof options.ratioY === 'number' ? options.ratioY : 0.2 + Math.random() * 0.6;
-        const moveDelay = typeof options.moveDelay === 'number' ? options.moveDelay : 30 + Math.random() * 50;
-        const pressDelay = typeof options.pressDelay === 'number' ? options.pressDelay : 60 + Math.random() * 100;
-        const x = rect.left + rect.width * ratioX;
-        const y = rect.top + rect.height * ratioY;
-        const base = { view: win, bubbles: true, cancelable: true, composed: true, clientX: x, clientY: y, screenX: x, screenY: y };
-        const sleep = (ms) =>
-            new Promise((resolve) => {
-                setTimeout(resolve, ms);
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const targetX = centerX + (Math.random() * 6 - 3);
+        const targetY = centerY + (Math.random() * 6 - 3);
+        const startX = rect.left - (Math.random() * 18 + 8);
+        const startY = rect.top - (Math.random() * 18 + 8);
+        const totalDuration = clamp(Math.round(readNumber(options.totalDuration) ?? 100), 24, 10000);
+        const dispatch = (type, x, y, buttons = 0) => {
+            if (typeof PointerEvent !== 'undefined') {
+                const pointerType = type.replace('mouse', 'pointer');
+                if (pointerType.includes('pointer')) {
+                    const pointerEv = new PointerEvent(pointerType, {
+                        bubbles: true,
+                        cancelable: true,
+                        view: win,
+                        clientX: x,
+                        clientY: y,
+                        buttons: buttons,
+                        pointerId: 1,
+                        pointerType: 'mouse',
+                        isPrimary: true
+                    });
+                    element.dispatchEvent(pointerEv);
+                }
+            }
+            const mouseEv = new MouseEvent(type, {
+                bubbles: true,
+                cancelable: true,
+                view: win,
+                clientX: x,
+                clientY: y,
+                buttons: buttons,
+                detail: type === 'click' ? 1 : 0
             });
-        element.dispatchEvent(new MouseEvent('mouseover', base));
-        element.dispatchEvent(new MouseEvent('mouseenter', base));
-        element.dispatchEvent(new MouseEvent('mousemove', base));
-        await sleep(moveDelay);
-        if (typeof PointerEvent === 'function') {
-            element.dispatchEvent(new PointerEvent('pointerdown', { ...base, pointerId: 1, pointerType: 'mouse', buttons: 1 }));
+            element.dispatchEvent(mouseEv);
+        };
+        const distance = Math.hypot(targetX - startX, targetY - startY);
+        const steps = Math.max(3, Math.min(8, Math.round(Math.min(distance / 7, totalDuration / 16) + 2)));
+        const minMove = Math.max(8, Math.round(totalDuration * 0.18));
+        const minTap = Math.max(6, Math.round(totalDuration * 0.1));
+        let hoverTime = Math.round(totalDuration * (0.16 + Math.random() * 0.08));
+        let tapTime = Math.round(totalDuration * (0.12 + Math.random() * 0.08));
+        const hoverOverride = readNumber(options.hoverDuration);
+        const tapOverride = readNumber(options.tapDuration);
+        if (hoverOverride != null) {
+            hoverTime = Math.max(0, Math.round(hoverOverride));
         }
-        element.dispatchEvent(new MouseEvent('mousedown', { ...base, buttons: 1 }));
-        await sleep(pressDelay);
-        if (typeof PointerEvent === 'function') {
-            element.dispatchEvent(new PointerEvent('pointerup', { ...base, pointerId: 1, pointerType: 'mouse', buttons: 0 }));
+        if (tapOverride != null) {
+            tapTime = Math.max(0, Math.round(tapOverride));
         }
-        element.dispatchEvent(new MouseEvent('mouseup', { ...base, buttons: 0 }));
-        element.dispatchEvent(new MouseEvent('click', { ...base, buttons: 0 }));
+        const maxPhaseTime = Math.max(0, totalDuration - minMove);
+        if (hoverTime + tapTime > maxPhaseTime) {
+            const ratio = maxPhaseTime / Math.max(1, hoverTime + tapTime);
+            hoverTime = Math.round(hoverTime * ratio);
+            tapTime = maxPhaseTime - hoverTime;
+        }
+        hoverTime = clamp(hoverTime, 0, Math.max(0, totalDuration - minMove - minTap));
+        tapTime = clamp(tapTime, minTap, Math.max(minTap, totalDuration - minMove - hoverTime));
+        let moveTime = totalDuration - hoverTime - tapTime;
+        if (moveTime < minMove) {
+            const shortage = minMove - moveTime;
+            const hoverCut = Math.min(hoverTime, Math.ceil(shortage / 2));
+            hoverTime -= hoverCut;
+            tapTime = Math.max(minTap, tapTime - (shortage - hoverCut));
+            moveTime = totalDuration - hoverTime - tapTime;
+        }
+        const startTime = now();
+        dispatch('mouseenter', startX, startY);
+        dispatch('mouseover', startX, startY);
+        for (let i = 1; i <= steps; i++) {
+            const progress = i / steps;
+            const easeProgress = 1 - Math.pow(1 - progress, 3);
+            const jitterX = i === steps ? 0 : (Math.random() - 0.5) * 1.2;
+            const jitterY = i === steps ? 0 : (Math.random() - 0.5) * 1.2;
+            const curX = startX + (targetX - startX) * easeProgress + jitterX;
+            const curY = startY + (targetY - startY) * easeProgress + jitterY;
+            await waitUntil(startTime + moveTime * progress);
+            dispatch('mousemove', curX, curY);
+        }
+        await waitUntil(startTime + moveTime + hoverTime);
+        dispatch('mousedown', targetX, targetY, 1);
+        await waitUntil(startTime + totalDuration);
+        dispatch('mouseup', targetX, targetY, 0);
+        dispatch('click', targetX, targetY, 0);
         return true;
     }
 

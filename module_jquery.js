@@ -6392,8 +6392,10 @@
         }
     });
     support.createHTMLDocument = (function () {
-        var body = document.implementation.createHTMLDocument("").body;
-        body.innerHTML = "<form></form><form></form>";
+        var doc = document.implementation.createHTMLDocument(""),
+            body = doc.body;
+        body.appendChild(doc.createElement("form"));
+        body.appendChild(doc.createElement("form"));
         return body.childNodes.length === 2;
     })();
     jQuery.parseHTML = function (data, context, keepScripts) {
